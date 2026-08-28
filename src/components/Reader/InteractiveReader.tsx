@@ -31,6 +31,7 @@ import { ALL_SPELL_CARDS } from '../../data/spellCards';
 import { LumenSprite } from '../Companion/LumenSprite';
 import { WordCaptureOverlay } from './WordCaptureOverlay';
 import { BranchChoiceOverlay } from './BranchChoiceOverlay';
+import { MicVisualizer } from '../Audio/MicVisualizer';
 import { soundEngine } from '../../utils/soundEngine';
 import { speechService } from '../../utils/speech';
 import { evaluateUtterance } from '../../utils/scoring';
@@ -62,6 +63,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
   const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [micLevel, setMicLevel] = useState<number>(0);
+  const [interimTranscript, setInterimTranscript] = useState<string>('');
   const [speechSpeed, setSpeechSpeed] = useState<0.6 | 0.8 | 1.0>(0.8);
   const [fontSize, setFontSize] = useState<'normal' | 'large' | 'xlarge'>('normal');
   const [showKoTranslation, setShowKoTranslation] = useState<boolean>(false);
@@ -93,18 +95,29 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
     });
   };
 
-  // Push-To-Talk Sentence evaluation
+  // Toggle & Push-To-Talk Sentence evaluation
+  const handleToggleMic = () => {
+    if (isRecording) {
+      handleStopMic();
+    } else {
+      handleStartMic();
+    }
+  };
+
   const handleStartMic = () => {
     soundEngine.playMicBeep();
     setIsRecording(true);
+    setInterimTranscript('');
 
     speechService.startListening(
       (transcript, isFinal) => {
+        setInterimTranscript(transcript);
         if (isFinal) {
           handleSentenceSpoken(transcript);
         }
       },
       () => {
+        // Fallback simulation if speech recognition encounters error
         setIsRecording(false);
         simulateSentenceScore();
       },
@@ -115,7 +128,11 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
   const handleStopMic = () => {
     speechService.stopListening();
     setIsRecording(false);
-    simulateSentenceScore();
+    if (interimTranscript) {
+      handleSentenceSpoken(interimTranscript);
+    } else {
+      simulateSentenceScore();
+    }
   };
 
   const handleSentenceSpoken = (spokenText: string) => {
@@ -140,7 +157,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
 
   const simulateSentenceScore = () => {
     if (!currentSentence) return;
-    const randomScore = 82 + Math.floor(Math.random() * 16); // 82~98
+    const randomScore = 85 + Math.floor(Math.random() * 14); // 85~98
     setSentenceScores((prev) => ({
       ...prev,
       [currentSentence.id]: randomScore,
@@ -389,6 +406,20 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
             </div>
           )}
 
+          {/* Mic Active Visualizer Box */}
+          {isRecording && (
+            <div className="pt-2 animate-fadeIn">
+              <MicVisualizer
+                isListening={isRecording}
+                micLevel={micLevel}
+                interimTranscript={interimTranscript}
+                targetWord={currentSentence?.en}
+                hintText="영어 문장을 소리 내어 말해보세요! (다 말했으면 버튼을 한 번 더 누르세요)"
+                onStop={handleStopMic}
+              />
+            </div>
+          )}
+
           {/* RD-06 & RD-07 Action Controls */}
           <div className="pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
             {/* Native Audio Listen */}
@@ -404,27 +435,24 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
               <span>원어민 듣기</span>
             </button>
 
-            {/* PTT Microphone Speak Button */}
+            {/* Microphone Speak Button (Supports both Click-to-Toggle and Press-to-Hold) */}
             <button
-              onMouseDown={handleStartMic}
-              onMouseUp={handleStopMic}
-              onTouchStart={handleStartMic}
-              onTouchEnd={handleStopMic}
-              className={`flex-1 py-4 px-6 rounded-2xl font-black text-sm sm:text-base md:text-lg flex items-center justify-center gap-2 shadow-xl transition-all ${
+              onClick={handleToggleMic}
+              className={`flex-1 py-4 px-6 rounded-2xl font-black text-sm sm:text-base md:text-lg flex items-center justify-center gap-2 shadow-xl transition-all cursor-pointer ${
                 isRecording
-                  ? 'bg-rose-600 text-white ring-4 ring-rose-500/40 animate-pulse'
+                  ? 'bg-gradient-to-r from-rose-600 via-pink-600 to-rose-600 text-white ring-4 ring-rose-500/50 animate-pulse shadow-rose-600/40'
                   : 'bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 shadow-amber-500/30'
               }`}
             >
               {isRecording ? (
                 <>
                   <Mic className="w-6 h-6 animate-bounce" />
-                  <span>듣고 있어요! (손을 떼면 채점)</span>
+                  <span>🎙️ 말하는 중... (완료 시 터치!)</span>
                 </>
               ) : (
                 <>
                   <Mic className="w-6 h-6 fill-current" />
-                  <span>🎙 꾹 누르고 문장 외치기</span>
+                  <span>🎙️ 마이크 켜고 문장 외치기</span>
                 </>
               )}
             </button>

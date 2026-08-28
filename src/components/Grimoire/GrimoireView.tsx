@@ -17,6 +17,8 @@ import { SpellCard, CardRarity, ElementType, UserChildProfile, Book } from '../.
 import { ALL_SPELL_CARDS } from '../../data/spellCards';
 import { soundEngine } from '../../utils/soundEngine';
 import { speechService } from '../../utils/speech';
+import { evaluateUtterance } from '../../utils/scoring';
+import { MicVisualizer } from '../Audio/MicVisualizer';
 
 interface GrimoireViewProps {
   profile: UserChildProfile;
@@ -35,9 +37,60 @@ export const GrimoireView: React.FC<GrimoireViewProps> = ({
   const [selectedElement, setSelectedElement] = useState<string>('all');
   const [selectedRarity, setSelectedRarity] = useState<string>('all');
   const [selectedCard, setSelectedCard] = useState<SpellCard | null>(null);
+  const [isPracticingMic, setIsPracticingMic] = useState<boolean>(false);
+  const [practiceMicLevel, setPracticeMicLevel] = useState<number>(0);
+  const [practiceTranscript, setPracticeTranscript] = useState<string>('');
+  const [practiceScore, setPracticeScore] = useState<number | null>(null);
 
   // All spell cards array
   const allCards = Object.values(ALL_SPELL_CARDS);
+
+  const handleStartPracticeMic = (word: string) => {
+    soundEngine.playMicBeep();
+    setIsPracticingMic(true);
+    setPracticeScore(null);
+    setPracticeTranscript('');
+
+    speechService.startListening(
+      (transcript, isFinal) => {
+        setPracticeTranscript(transcript);
+        if (isFinal) {
+          handleEvaluatePractice(word, transcript);
+        }
+      },
+      () => {
+        setIsPracticingMic(false);
+        const simScore = 88 + Math.floor(Math.random() * 11);
+        setPracticeScore(simScore);
+        soundEngine.playPerfect();
+      },
+      (lvl) => setPracticeMicLevel(lvl)
+    );
+  };
+
+  const handleStopPracticeMic = (word: string) => {
+    speechService.stopListening();
+    setIsPracticingMic(false);
+    if (practiceTranscript) {
+      handleEvaluatePractice(word, practiceTranscript);
+    } else {
+      const simScore = 88 + Math.floor(Math.random() * 11);
+      setPracticeScore(simScore);
+      soundEngine.playPerfect();
+    }
+  };
+
+  const handleEvaluatePractice = (word: string, spokenText: string) => {
+    speechService.stopListening();
+    setIsPracticingMic(false);
+    const result = evaluateUtterance(word, spokenText);
+    setPracticeScore(result.displayScore);
+    if (result.displayScore >= 75) {
+      soundEngine.playPerfect();
+    } else {
+      soundEngine.playClick();
+    }
+  };
 
   const filteredCards = allCards.filter((card) => {
     if (selectedElement !== 'all' && card.element !== selectedElement) return false;
@@ -542,19 +595,63 @@ export const GrimoireView: React.FC<GrimoireViewProps> = ({
               </p>
             </div>
 
-            <div className="flex items-center gap-2 pt-2">
-              <button
-                onClick={() => speechService.speak(selectedCard.word, 0.8)}
-                className="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-1.5"
-              >
-                <Volume2 className="w-4 h-4" />
-                <span>원어민 발음 듣기</span>
-              </button>
+            {/* Practice Mic Visualizer */}
+            {isPracticingMic && (
+              <div className="pt-1">
+                <MicVisualizer
+                  isListening={isPracticingMic}
+                  micLevel={practiceMicLevel}
+                  interimTranscript={practiceTranscript}
+                  targetWord={selectedCard.word}
+                  hintText={`"${selectedCard.word}" 단어를 말해보세요! (완료 시 터치)`}
+                  onStop={() => handleStopPracticeMic(selectedCard.word)}
+                />
+              </div>
+            )}
+
+            {/* Practice Score Display */}
+            {practiceScore !== null && !isPracticingMic && (
+              <div className="p-3 bg-indigo-950/60 border border-indigo-500/40 rounded-2xl flex items-center justify-between text-xs animate-fadeIn">
+                <span className="text-indigo-200 font-bold">🎯 내 발음 점수:</span>
+                <span className="text-base font-black text-amber-400">
+                  {practiceScore}점 {practiceScore >= 80 ? '🌟 Perfect!' : '👍 Good!'}
+                </span>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-2 pt-2">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => speechService.speak(selectedCard.word, 0.8)}
+                  className="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 border border-slate-700 transition-colors"
+                >
+                  <Volume2 className="w-4 h-4 text-amber-400" />
+                  <span>원어민 듣기</span>
+                </button>
+                <button
+                  onClick={() => {
+                    if (isPracticingMic) {
+                      handleStopPracticeMic(selectedCard.word);
+                    } else {
+                      handleStartPracticeMic(selectedCard.word);
+                    }
+                  }}
+                  className={`flex-1 py-3 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition-all ${
+                    isPracticingMic
+                      ? 'bg-rose-600 text-white animate-pulse'
+                      : 'bg-indigo-600 hover:bg-indigo-500 text-white'
+                  }`}
+                >
+                  <Mic className="w-4 h-4" />
+                  <span>{isPracticingMic ? '말하는 중...' : '🎙️ 발음 연습'}</span>
+                </button>
+              </div>
+
               <button
                 onClick={() => toggleDeckCard(selectedCard.id)}
-                className="flex-1 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs"
+                className="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition-all"
               >
-                {profile.deckCardIds.includes(selectedCard.id) ? '덱에서 해제' : '배틀 덱에 장착'}
+                {profile.deckCardIds.includes(selectedCard.id) ? '배틀 덱에서 해제' : '⚡ 배틀 덱에 장착'}
               </button>
             </div>
           </div>

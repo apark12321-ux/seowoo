@@ -18,6 +18,7 @@ import { soundEngine } from '../../utils/soundEngine';
 import { speechService } from '../../utils/speech';
 import { evaluateUtterance, getRarityFromScore, getVerdictFromScore } from '../../utils/scoring';
 import { LumenSprite } from '../Companion/LumenSprite';
+import { MicVisualizer } from '../Audio/MicVisualizer';
 
 interface WordCaptureOverlayProps {
   card: SpellCard;
@@ -46,11 +47,20 @@ export const WordCaptureOverlay: React.FC<WordCaptureOverlayProps> = ({
     speechService.speak(card.word, 0.8);
   };
 
+  const handleToggleMic = () => {
+    if (isListening) {
+      handleStopMic();
+    } else {
+      handleStartMic();
+    }
+  };
+
   const handleStartMic = () => {
     soundEngine.playMicBeep();
     setIsListening(true);
     setScore(null);
     setVerdict(null);
+    setLastSpoken('');
 
     speechService.startListening(
       (transcript, isFinal) => {
@@ -59,8 +69,7 @@ export const WordCaptureOverlay: React.FC<WordCaptureOverlayProps> = ({
           handleEvaluate(transcript);
         }
       },
-      (err) => {
-        setIsListening(false);
+      () => {
         // Fallback simulation if speech recognition not supported in container
         simulateEvaluation();
       },
@@ -71,7 +80,9 @@ export const WordCaptureOverlay: React.FC<WordCaptureOverlayProps> = ({
   const handleStopMic = () => {
     speechService.stopListening();
     setIsListening(false);
-    if (!lastSpoken && !score) {
+    if (lastSpoken) {
+      handleEvaluate(lastSpoken);
+    } else if (!score) {
       simulateEvaluation();
     }
   };
@@ -364,30 +375,41 @@ export const WordCaptureOverlay: React.FC<WordCaptureOverlayProps> = ({
           </div>
         )}
 
-        {/* Actions (PTT Mic or Success Continue) */}
+        {/* Active Mic Visualizer Indicator */}
+        {isListening && (
+          <div className="pt-1">
+            <MicVisualizer
+              isListening={isListening}
+              micLevel={micLevel}
+              interimTranscript={lastSpoken}
+              targetWord={card.word}
+              hintText={`"${card.word}" 주문을 크게 외쳐보세요! (완료 시 터치)`}
+              onStop={handleStopMic}
+            />
+          </div>
+        )}
+
+        {/* Actions (Mic or Success Continue) */}
         <div className="pt-2">
           {!isSuccess ? (
             <div className="flex items-center gap-3">
               <button
-                onMouseDown={handleStartMic}
-                onMouseUp={handleStopMic}
-                onTouchStart={handleStartMic}
-                onTouchEnd={handleStopMic}
-                className={`flex-1 py-4.5 px-6 rounded-2xl font-black text-sm sm:text-base md:text-lg flex items-center justify-center gap-2 shadow-xl transition-all ${
+                onClick={handleToggleMic}
+                className={`flex-1 py-4.5 px-6 rounded-2xl font-black text-sm sm:text-base md:text-lg flex items-center justify-center gap-2 shadow-xl transition-all cursor-pointer ${
                   isListening
-                    ? 'bg-rose-600 text-white ring-4 ring-rose-500/40 animate-pulse'
+                    ? 'bg-gradient-to-r from-rose-600 via-pink-600 to-rose-600 text-white ring-4 ring-rose-500/50 animate-pulse shadow-rose-600/40'
                     : 'bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 shadow-amber-500/30'
                 }`}
               >
                 {isListening ? (
                   <>
                     <Mic className="w-6 h-6 animate-bounce" />
-                    <span>말하는 중... (손을 떼면 채점)</span>
+                    <span>🎙️ 말하는 중... (완료 시 터치!)</span>
                   </>
                 ) : (
                   <>
                     <Mic className="w-6 h-6 fill-current" />
-                    <span>🎙 꾹 누르고 이름을 불러줘!</span>
+                    <span>🎙️ 마이크 켜고 "{card.word}" 외치기</span>
                   </>
                 )}
               </button>
@@ -397,7 +419,7 @@ export const WordCaptureOverlay: React.FC<WordCaptureOverlayProps> = ({
                 className="px-4 py-4 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs sm:text-sm font-bold border border-slate-700"
                 title="시뮬레이션 발화 테스트"
               >
-                테스트
+                테스트 발화
               </button>
             </div>
           ) : (

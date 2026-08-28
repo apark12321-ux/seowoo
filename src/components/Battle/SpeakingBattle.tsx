@@ -23,6 +23,7 @@ import { soundEngine } from '../../utils/soundEngine';
 import { speechService } from '../../utils/speech';
 import { calculateBattleDamage, evaluateUtterance } from '../../utils/scoring';
 import { LumenSprite } from '../Companion/LumenSprite';
+import { MicVisualizer } from '../Audio/MicVisualizer';
 
 interface SpeakingBattleProps {
   chapterId: string;
@@ -57,6 +58,8 @@ export const SpeakingBattle: React.FC<SpeakingBattleProps> = ({
   const [maxCombo, setMaxCombo] = useState<number>(1);
   const [damageTotal, setDamageTotal] = useState<number>(0);
   const [isListening, setIsListening] = useState<boolean>(false);
+  const [micLevel, setMicLevel] = useState<number>(0);
+  const [interimTranscript, setInterimTranscript] = useState<string>('');
   const [lastDamage, setLastDamage] = useState<{ amount: number; verdict: PronunciationVerdict } | null>(null);
   const [isShaking, setIsShaking] = useState<boolean>(false);
   const [noxReaction, setNoxReaction] = useState<'idle' | 'hit' | 'taunt'>('idle');
@@ -98,13 +101,23 @@ export const SpeakingBattle: React.FC<SpeakingBattleProps> = ({
     handleSpellResult(0, 'MISS');
   };
 
+  const handleToggleMic = () => {
+    if (isListening) {
+      handleStopMic();
+    } else {
+      handleStartMic();
+    }
+  };
+
   const handleStartMic = () => {
     soundEngine.playMicBeep();
     setIsListening(true);
     setLastDamage(null);
+    setInterimTranscript('');
 
     speechService.startListening(
       (transcript, isFinal) => {
+        setInterimTranscript(transcript);
         if (isFinal) {
           evaluateSpokenSpell(transcript);
         }
@@ -112,14 +125,19 @@ export const SpeakingBattle: React.FC<SpeakingBattleProps> = ({
       () => {
         setIsListening(false);
         simulateSpellCast();
-      }
+      },
+      (lvl) => setMicLevel(lvl)
     );
   };
 
   const handleStopMic = () => {
     speechService.stopListening();
     setIsListening(false);
-    simulateSpellCast();
+    if (interimTranscript) {
+      evaluateSpokenSpell(interimTranscript);
+    } else {
+      simulateSpellCast();
+    }
   };
 
   const evaluateSpokenSpell = (spokenText: string) => {
@@ -370,28 +388,39 @@ export const SpeakingBattle: React.FC<SpeakingBattleProps> = ({
             <p className="text-center text-slate-400">카드가 없습니다.</p>
           )}
 
+          {/* Active Mic Visualizer in Battle */}
+          {isListening && (
+            <div className="pt-1">
+              <MicVisualizer
+                isListening={isListening}
+                micLevel={micLevel}
+                interimTranscript={interimTranscript}
+                targetWord={currentCard?.word}
+                hintText={`주문 "${currentCard?.word}"을 큰 목소리로 외쳐서 공격하세요!`}
+                onStop={handleStopMic}
+              />
+            </div>
+          )}
+
           {/* Attack Action Button */}
           <div className="pt-2">
             <button
-              onMouseDown={handleStartMic}
-              onMouseUp={handleStopMic}
-              onTouchStart={handleStartMic}
-              onTouchEnd={handleStopMic}
-              className={`w-full py-4.5 px-6 rounded-2xl font-black text-sm sm:text-base md:text-lg flex items-center justify-center gap-2 shadow-xl transition-all ${
+              onClick={handleToggleMic}
+              className={`w-full py-4.5 px-6 rounded-2xl font-black text-sm sm:text-base md:text-lg flex items-center justify-center gap-2 shadow-xl transition-all cursor-pointer ${
                 isListening
-                  ? 'bg-rose-600 text-white ring-4 ring-rose-500/40 animate-pulse'
+                  ? 'bg-gradient-to-r from-rose-600 via-pink-600 to-rose-600 text-white ring-4 ring-rose-500/50 animate-pulse shadow-rose-600/40'
                   : 'bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 shadow-amber-500/25'
               }`}
             >
               {isListening ? (
                 <>
                   <Mic className="w-6 h-6 animate-bounce" />
-                  <span>주문을 외치는 중...! (손을 떼면 발사)</span>
+                  <span>🎙️ 주문을 외치는 중...! (완료 시 터치 발사)</span>
                 </>
               ) : (
                 <>
                   <Mic className="w-6 h-6 fill-current" />
-                  <span>🎙 꾹 누르고 주문 '{currentCard?.word}' 외치기!</span>
+                  <span>🎙️ 마이크 켜고 주문 '{currentCard?.word}' 외치기!</span>
                 </>
               )}
             </button>

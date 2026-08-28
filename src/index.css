@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply bg-slate-950 text-slate-100 antialiased selection:bg-amber-500 selection:text-slate-950;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  }
+}
+
+/* Custom Dyslexia Friendly Mode */
+.font-dyslexic {
+  font-family: 'Comic Sans MS', 'Trebuchet MS', 'Chalkboard SE', cursive, sans-serif !important;
+  letter-spacing: 0.08em !important;
+  word-spacing: 0.16em !important;
+  line-height: 2 !important;
+}
+
+/* Card Holographic / Foil Shimmer */
+@keyframes holoShimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.holo-card-ssr {
+  background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,105,180,0.2), rgba(0,191,255,0.2), rgba(255,215,0,0.15));
+  background-size: 300% 300%;
+  animation: holoShimmer 6s ease infinite;
+}
+
+.holo-card-sr {
+  background: linear-gradient(135deg, rgba(168,85,247,0.15), rgba(99,102,241,0.2), rgba(168,85,247,0.15));
+  background-size: 200% 200%;
+  animation: holoShimmer 5s ease infinite;
+}
+
+/* Shimmer pulse for magical highlight tokens */
+@keyframes goldPulse {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.4), inset 0 0 6px rgba(245, 158, 11, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.8), inset 0 0 12px rgba(245, 158, 11, 0.5);
+  }
+}
+
+.magical-token-gold {
+  animation: goldPulse 2s infinite ease-in-out;
+}
+
+/* Battle screen shake */
+@keyframes screenShake {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  20% { transform: translate(-4px, 4px) rotate(-1deg); }
+  40% { transform: translate(4px, -4px) rotate(1deg); }
+  60% { transform: translate(-3px, 2px) rotate(0deg); }
+  80% { transform: translate(3px, -2px) rotate(1deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+.shake-hit {
+  animation: screenShake 0.3s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+/* Lumen float animation */
+@keyframes lumenFloat {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.03);
+  }
+}
+
+.lumen-floating {
+  animation: lumenFloat 3.2s ease-in-out infinite;
+}
+
+/* Nox comic floating wobble */
+@keyframes noxWobble {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-5px) rotate(2deg);
+  }
+  75% {
+    transform: translateY(3px) rotate(-2deg);
+  }
+}
+
+.nox-floating {
+  animation: noxWobble 4s ease-in-out infinite;
+}

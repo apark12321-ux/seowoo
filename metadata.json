@@ -1,0 +1,6 @@
+{
+  "name": "SPELLBOOK",
+  "description": "원서 기반 AI 스피킹 학습 서비스 & 마법 RPG — 인터랙티브 원서 리딩, 음성 분기 선택, 단어 포획 및 스피킹 배틀",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

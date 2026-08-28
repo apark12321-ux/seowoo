@@ -93,8 +93,8 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({
 
       {/* Filter Tabs */}
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
-          <span className="px-2 text-slate-400 font-semibold">장르:</span>
+        <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs shrink-0 overflow-x-auto no-scrollbar">
+          <span className="px-2 text-slate-400 font-semibold whitespace-nowrap">장르:</span>
           {['all', 'fantasy', 'adventure', 'classic'].map((genre) => (
             <button
               key={genre}
@@ -102,7 +102,7 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({
                 soundEngine.playClick();
                 setSelectedGenre(genre);
               }}
-              className={`px-3 py-1 rounded-lg capitalize font-medium transition-all ${
+              className={`px-3 py-1 rounded-lg capitalize font-bold transition-all whitespace-nowrap shrink-0 ${
                 selectedGenre === genre
                   ? 'bg-emerald-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
@@ -119,8 +119,8 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({
           ))}
         </div>
 
-        <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
-          <span className="px-2 text-slate-400 font-semibold">AR 레벨:</span>
+        <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs shrink-0 overflow-x-auto no-scrollbar">
+          <span className="px-2 text-slate-400 font-semibold whitespace-nowrap">AR 레벨:</span>
           {['all', '1.0-1.9', '2.0-2.9', '3.0+'].map((range) => (
             <button
               key={range}
@@ -128,7 +128,7 @@ export const BookLibrary: React.FC<BookLibraryProps> = ({
                 soundEngine.playClick();
                 setSelectedArRange(range);
               }}
-              className={`px-3 py-1 rounded-lg font-medium transition-all ${
+              className={`px-3 py-1 rounded-lg font-bold transition-all whitespace-nowrap shrink-0 ${
                 selectedArRange === range
                   ? 'bg-indigo-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'

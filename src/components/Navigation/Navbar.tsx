@@ -14,9 +14,12 @@ import {
   Type,
   Calendar,
   X,
+  HelpCircle,
+  Compass,
 } from 'lucide-react';
 import { UserChildProfile } from '../../types';
 import { soundEngine } from '../../utils/soundEngine';
+import { BeginnerGuideModal } from '../Guide/BeginnerGuideModal';
 
 interface NavbarProps {
   currentTab?: string;
@@ -41,6 +44,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [isMuted, setIsMuted] = useState(false);
   const [showStreakModal, setShowStreakModal] = useState(false);
+  const [showGuideModal, setShowGuideModal] = useState(false);
 
   const selectedTab = activeTab || currentTab || 'home';
   const effectiveMode = appMode || (selectedTab === 'parent' ? 'parent' : 'student');
@@ -66,54 +70,54 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-indigo-900/40 px-4 lg:px-6 py-2.5">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
-          {/* Logo & Brand */}
-          <div className="flex items-center gap-3">
+      <header className="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-indigo-900/50 px-3 sm:px-4 lg:px-6 py-2.5">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
+          {/* Left: Brand & Mode Selector */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <button
               onClick={() => {
                 soundEngine.playClick();
                 onSelectTab('home');
                 if (onSelectMode) onSelectMode('student');
               }}
-              className="flex items-center gap-2.5 text-left group"
+              className="flex items-center gap-2 sm:gap-2.5 text-left group shrink-0"
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 via-indigo-600 to-purple-700 p-0.5 shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-400 via-indigo-600 to-purple-700 p-0.5 shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform shrink-0">
                 <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
                   <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
                 </div>
               </div>
-              <div>
+              <div className="shrink-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-extrabold text-lg tracking-wider bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent">
+                  <span className="font-extrabold text-base sm:text-lg tracking-wider bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent whitespace-nowrap">
                     SPELLBOOK
                   </span>
-                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                    v2.0
+                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 whitespace-nowrap">
+                    👑 Park Seowoo
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-400 hidden sm:block">
-                  네 목소리가 마법이 되는 곳
+                <p className="text-[11px] text-slate-400 hidden xl:block whitespace-nowrap">
+                  대마법사 박서우를 위한 영어 원서 마법 모험
                 </p>
               </div>
             </button>
 
-            {/* Mode Switcher Pill */}
-            <div className="hidden md:flex items-center bg-slate-950/80 p-1 rounded-2xl border border-slate-800 text-xs">
+            {/* Mode Switcher Pill (Single line, text-size optimized, zero text-wrapping) */}
+            <div className="hidden md:flex items-center bg-slate-950/90 p-1 rounded-2xl border border-slate-800 text-xs sm:text-sm shrink-0">
               <button
                 onClick={() => {
                   soundEngine.playClick();
                   onSelectTab(selectedTab === 'parent' ? 'home' : selectedTab);
                   if (onSelectMode) onSelectMode('student');
                 }}
-                className={`px-3 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1 ${
+                className={`px-3 py-1.5 rounded-xl font-black transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                   effectiveMode === 'student'
                     ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md'
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
                 <span>🧙‍♂️</span>
-                <span>마법 학교</span>
+                <span className="whitespace-nowrap">마법학교</span>
               </button>
               <button
                 onClick={() => {
@@ -121,122 +125,131 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onSelectTab('parent');
                   if (onSelectMode) onSelectMode('parent');
                 }}
-                className={`px-3 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1 ${
+                className={`px-3 py-1.5 rounded-xl font-black transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                   effectiveMode === 'parent'
                     ? 'bg-amber-600 text-white shadow-md'
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
                 <span>👨‍👩‍👧</span>
-                <span>학부모 리포트</span>
+                <span className="whitespace-nowrap">학부모</span>
               </button>
               <button
                 onClick={() => {
                   soundEngine.playClick();
-                  setShowStreakModal(true);
-                  if (onSelectMode) onSelectMode('onboarding');
+                  setShowGuideModal(true);
                 }}
-                className={`px-3 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1 ${
-                  effectiveMode === 'onboarding'
-                    ? 'bg-emerald-600 text-white shadow-md'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
+                className="px-3 py-1.5 rounded-xl font-black text-amber-300 hover:text-amber-200 hover:bg-amber-500/20 transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0"
+                title="초보 마법사 이용 가이드"
               >
                 <span>✨</span>
-                <span>입문식</span>
+                <span className="whitespace-nowrap">입문가이드</span>
               </button>
             </div>
           </div>
 
-          {/* Student Tabs (when in student mode) */}
+          {/* Center: Student Main Tabs (Optimized single-line terms, enlarged typography, zero line wrap) */}
           {effectiveMode === 'student' && (
-            <nav className="hidden lg:flex items-center gap-1.5 bg-slate-950/80 p-1.5 rounded-2xl border border-slate-800">
+            <nav className="hidden lg:flex items-center gap-1 bg-slate-950/90 p-1.5 rounded-2xl border border-slate-800 overflow-x-auto no-scrollbar shrink-0">
               <button
                 onClick={() => {
                   soundEngine.playClick();
                   onSelectTab('home');
                 }}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black transition-all ${
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-black transition-all whitespace-nowrap shrink-0 ${
                   selectedTab === 'home'
                     ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md scale-105'
                     : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
                 }`}
               >
                 <span>🏰</span>
-                <span>마법탑 홈</span>
+                <span className="whitespace-nowrap">홈</span>
               </button>
               <button
                 onClick={() => {
                   soundEngine.playClick();
                   onSelectTab('library');
                 }}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black transition-all ${
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-black transition-all whitespace-nowrap shrink-0 ${
                   selectedTab === 'library'
                     ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md scale-105'
                     : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
                 }`}
               >
                 <span>📚</span>
-                <span>원서 도서관</span>
+                <span className="whitespace-nowrap">도서관</span>
               </button>
               <button
                 onClick={() => {
                   soundEngine.playClick();
                   onSelectTab('grimoire');
                 }}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black transition-all ${
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-black transition-all whitespace-nowrap shrink-0 ${
                   selectedTab === 'grimoire'
                     ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md scale-105'
                     : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
                 }`}
               >
                 <span>🃏</span>
-                <span>스펠 도감</span>
+                <span className="whitespace-nowrap">도감</span>
               </button>
               <button
                 onClick={() => {
                   soundEngine.playClick();
                   onSelectTab('arena');
                 }}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black transition-all ${
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-black transition-all whitespace-nowrap shrink-0 ${
                   selectedTab === 'arena'
                     ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md scale-105'
                     : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
                 }`}
               >
                 <span>⚔️</span>
-                <span>랭킹 아레나</span>
+                <span className="whitespace-nowrap">아레나</span>
               </button>
               <button
                 onClick={() => {
                   soundEngine.playClick();
                   onSelectTab('parent');
                 }}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black transition-all ${
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-black transition-all whitespace-nowrap shrink-0 ${
                   selectedTab === 'parent' || selectedTab === 'my'
                     ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md scale-105'
                     : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
                 }`}
               >
                 <span>📊</span>
-                <span>성장 리포트</span>
+                <span className="whitespace-nowrap">리포트</span>
               </button>
             </nav>
           )}
 
-          {/* Right Status Bars & Controls */}
-          <div className="flex items-center gap-2">
+          {/* Right Status Bars, Guide Quick Trigger & Controls */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Beginner Guide Quick Button */}
+            <button
+              onClick={() => {
+                soundEngine.playClick();
+                setShowGuideModal(true);
+              }}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-400/40 text-amber-300 hover:bg-amber-500/25 transition-all text-xs font-black shadow-sm shrink-0 whitespace-nowrap"
+              title="처음 오셨나요? 플레이 가이드 확인하기"
+            >
+              <Compass className="w-4 h-4 text-amber-300 animate-spin" style={{ animationDuration: '8s' }} />
+              <span className="whitespace-nowrap hidden sm:inline">가이드 팁</span>
+            </button>
+
             {/* Streak Button */}
             <button
               onClick={() => {
                 soundEngine.playClick();
                 setShowStreakModal(true);
               }}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 transition-all text-xs font-bold shadow-sm"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 transition-all text-xs font-black shadow-sm shrink-0 whitespace-nowrap"
               title="스트릭 연속 학습"
             >
               <Flame className="w-4 h-4 text-amber-400 animate-bounce" />
-              <span>{profile.streakDays}일</span>
+              <span className="whitespace-nowrap">{profile.streakDays}일</span>
             </button>
 
             {/* Mana Gauge */}
@@ -245,18 +258,18 @@ export const Navbar: React.FC<NavbarProps> = ({
                 soundEngine.playClick();
                 onOpenPaywall();
               }}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/20 transition-all text-xs font-bold shadow-sm"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/20 transition-all text-xs font-black shadow-sm shrink-0 whitespace-nowrap"
               title="마나 충전 / 구독 관리"
             >
               <Zap className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-              <span>{profile.mana}</span>
-              <span className="text-[10px] text-indigo-400 bg-indigo-900/60 px-1 py-0.5 rounded">
+              <span className="whitespace-nowrap">{profile.mana}</span>
+              <span className="text-[10px] text-indigo-300 bg-indigo-900/80 px-1 py-0.5 rounded font-black whitespace-nowrap">
                 +충전
               </span>
             </button>
 
             {/* Quick Tools: Sound, Dyslexia Font */}
-            <div className="flex items-center gap-1 pl-1 border-l border-slate-800">
+            <div className="flex items-center gap-1 pl-1 border-l border-slate-800 shrink-0">
               <button
                 onClick={toggleDyslexia}
                 className={`p-1.5 rounded-lg border transition-colors ${
@@ -283,57 +296,73 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Mobile Sub Navigation bar */}
+        {/* Mobile Sub Navigation bar (Optimized terms & whitespace-nowrap) */}
         {effectiveMode === 'student' && (
           <div className="lg:hidden flex items-center justify-around pt-2 mt-2 border-t border-slate-800/60 text-xs">
             <button
               onClick={() => onSelectTab('home')}
-              className={`flex flex-col items-center gap-0.5 py-1 ${
+              className={`flex flex-col items-center gap-0.5 py-1 whitespace-nowrap ${
                 selectedTab === 'home' ? 'text-amber-400 font-bold' : 'text-slate-400'
               }`}
             >
               <Sparkle className="w-4 h-4" />
-              <span>마법탑</span>
+              <span className="whitespace-nowrap">홈</span>
             </button>
             <button
               onClick={() => onSelectTab('library')}
-              className={`flex flex-col items-center gap-0.5 py-1 ${
+              className={`flex flex-col items-center gap-0.5 py-1 whitespace-nowrap ${
                 selectedTab === 'library' ? 'text-emerald-400 font-bold' : 'text-slate-400'
               }`}
             >
               <BookOpen className="w-4 h-4" />
-              <span>서재</span>
+              <span className="whitespace-nowrap">도서관</span>
             </button>
             <button
               onClick={() => onSelectTab('grimoire')}
-              className={`flex flex-col items-center gap-0.5 py-1 ${
+              className={`flex flex-col items-center gap-0.5 py-1 whitespace-nowrap ${
                 selectedTab === 'grimoire' ? 'text-purple-400 font-bold' : 'text-slate-400'
               }`}
             >
               <Shield className="w-4 h-4" />
-              <span>그리모어</span>
+              <span className="whitespace-nowrap">도감</span>
             </button>
             <button
               onClick={() => onSelectTab('arena')}
-              className={`flex flex-col items-center gap-0.5 py-1 ${
+              className={`flex flex-col items-center gap-0.5 py-1 whitespace-nowrap ${
                 selectedTab === 'arena' ? 'text-rose-400 font-bold' : 'text-slate-400'
               }`}
             >
               <Swords className="w-4 h-4" />
-              <span>아레나</span>
+              <span className="whitespace-nowrap">아레나</span>
             </button>
             <button
               onClick={() => onSelectTab('parent')}
-              className={`flex flex-col items-center gap-0.5 py-1 ${
+              className={`flex flex-col items-center gap-0.5 py-1 whitespace-nowrap ${
                 selectedTab === 'parent' || selectedTab === 'my' ? 'text-amber-400 font-bold' : 'text-slate-400'
               }`}
             >
               <User className="w-4 h-4" />
-              <span>학부모</span>
+              <span className="whitespace-nowrap">리포트</span>
+            </button>
+            <button
+              onClick={() => setShowGuideModal(true)}
+              className="flex flex-col items-center gap-0.5 py-1 whitespace-nowrap text-amber-300 hover:text-amber-200"
+            >
+              <Compass className="w-4 h-4" />
+              <span className="whitespace-nowrap">가이드</span>
             </button>
           </div>
         )}
       </header>
+
+      {/* Beginner Guide Modal */}
+      <BeginnerGuideModal
+        isOpen={showGuideModal}
+        onClose={() => setShowGuideModal(false)}
+        onStartAdventure={() => {
+          onSelectTab('library');
+        }}
+      />
 
       {/* Streak Details Modal */}
       {showStreakModal && (
@@ -422,3 +451,4 @@ export const Navbar: React.FC<NavbarProps> = ({
     </>
   );
 };
+

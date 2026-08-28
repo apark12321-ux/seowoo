@@ -1,6 +1,27 @@
 import { SpellCard } from '../types';
 
 export const ALL_SPELL_CARDS: Record<string, SpellCard> = {
+  card_seowoo_star: {
+    id: 'card_seowoo_star',
+    wordId: 'w_seowoo_star',
+    word: 'radiant',
+    ipa: '/ˈreɪ.di.ənt/',
+    meaningKo: '눈부시게 빛나는 (박서우 전설의 마법)',
+    exampleEn: 'Seowoo has a radiant voice that dispels the darkness.',
+    exampleKo: '서우는 어둠을 환하게 물리치는 눈부신 마법의 목소리를 지녔어요.',
+    element: 'light',
+    rarity: 'SSR',
+    baseAttack: 50,
+    artKey: 'sparkle',
+    bookTitle: '대마법사 박서우의 전설 (Seowoo The Archmage)',
+    phonemes: [
+      { phoneme: 'r', score: 98, ipa: 'r', tip: '혀끝을 입천장에 닿지 않게 살짝 뒤로 굴려주세요.' },
+      { phoneme: 'eɪ', score: 96, ipa: 'eɪ', tip: '밝고 맑은 소리로 "에이"를 활짝 펴며 발음해요.' },
+      { phoneme: 'd', score: 95, ipa: 'd', tip: '혀끝을 윗니 잇몸에 튕겨 경쾌하게 소리내요.' },
+      { phoneme: 'i', score: 97, ipa: 'i', tip: '입꼬리를 살짝 올리며 깔끔하게 이어줘요.' },
+      { phoneme: 'ənt', score: 94, ipa: 'ənt', tip: '부드럽고 자연스럽게 마무리해요.' },
+    ],
+  },
   card_courage: {
     id: 'card_courage',
     wordId: 'w_courage',

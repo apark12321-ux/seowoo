@@ -243,6 +243,65 @@ class SoundEngine {
       });
     });
   }
+
+  // ✨ Special Seowoo Sparkling Magic Sound (Super bright starry arpeggio)
+  public playSeowooMagic() {
+    if (this.isMuted) return;
+    const ctx = this.initCtx();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    // Pentatonic high sparkle: E5, G5, A5, C6, D6, E6, G6, A6, C7
+    const sparkleNotes = [659.25, 783.99, 880, 1046.5, 1174.66, 1318.51, 1567.98, 1760, 2093];
+    sparkleNotes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.045);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.05, now + idx * 0.045 + 0.3);
+
+      gain.gain.setValueAtTime(0.14, now + idx * 0.045);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.045 + 0.35);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + idx * 0.045);
+      osc.stop(now + idx * 0.045 + 0.38);
+    });
+  }
+
+  // 👑 Seowoo Grand Archmage Fanfare
+  public playSeowooCheerFanfare() {
+    if (this.isMuted) return;
+    const ctx = this.initCtx();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const notes = [
+      { f: 523.25, t: 0, d: 0.12 },
+      { f: 659.25, t: 0.12, d: 0.12 },
+      { f: 783.99, t: 0.24, d: 0.12 },
+      { f: 1046.5, t: 0.36, d: 0.3 },
+      { f: 880, t: 0.68, d: 0.12 },
+      { f: 1046.5, t: 0.8, d: 0.12 },
+      { f: 1318.51, t: 0.92, d: 0.6 },
+    ];
+
+    notes.forEach((n) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(n.f, now + n.t);
+
+      gain.gain.setValueAtTime(0.18, now + n.t);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + n.t + n.d);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + n.t);
+      osc.stop(now + n.t + n.d + 0.05);
+    });
+  }
 }
 
 export const soundEngine = new SoundEngine();

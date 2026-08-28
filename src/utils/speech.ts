@@ -74,6 +74,56 @@ class SpeechService {
     });
   }
 
+  // Speak Korean cheer specifically for Seowoo (Park Seowoo)
+  public speakKorean(text: string, rate: number = 1.05, onEnd?: () => void): Promise<void> {
+    return new Promise((resolve) => {
+      if (typeof window === 'undefined' || !window.speechSynthesis) {
+        resolve();
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = rate;
+      utterance.lang = 'ko-KR';
+      utterance.pitch = 1.15; // Bright, joyful child-friendly companion pitch
+
+      const voices = window.speechSynthesis.getVoices();
+      const koVoice = voices.find((v) => v.lang === 'ko-KR' || v.lang.startsWith('ko'));
+      if (koVoice) {
+        utterance.voice = koVoice;
+      }
+
+      utterance.onend = () => {
+        if (onEnd) onEnd();
+        resolve();
+      };
+      utterance.onerror = () => {
+        if (onEnd) onEnd();
+        resolve();
+      };
+
+      window.speechSynthesis.speak(utterance);
+    });
+  }
+
+  // Cheer Seowoo audio voice trigger with random joyful lines
+  public cheerSeowoo(customText?: string): Promise<void> {
+    const seowooQuotes = [
+      '서우야 안녕! 오늘도 멋지게 영어 마법을 외쳐보자!',
+      '우와! 박서우 마법사님의 발음이 진짜 완벽해! 최고야!',
+      '대마법사 서우의 목소리 에너지가 최고조에 달했어요!',
+      '서우야, 넌 세상에서 가장 멋진 영어 마법사야! 파이팅!',
+      'Great job, Seowoo! You are the greatest archmage!',
+    ];
+    const phrase = customText || seowooQuotes[Math.floor(Math.random() * seowooQuotes.length)];
+    if (phrase.match(/[가-힣]/)) {
+      return this.speakKorean(phrase);
+    }
+    return this.speak(phrase);
+  }
+
   public stopSpeaking() {
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel();

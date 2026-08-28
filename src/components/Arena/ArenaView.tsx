@@ -21,29 +21,42 @@ interface ArenaViewProps {
 
 export const ArenaView: React.FC<ArenaViewProps> = ({ profile, onStartBattle }) => {
   const [mockRankers] = useState<LeagueRanker[]>([
-    { rank: 1, nickname: 'Luna_Mage', rankTitle: '대마법사', points: 1450, favoriteCard: 'courage', avatarEmoji: '🧙‍♀️' },
-    { rank: 2, nickname: profile.nickname, rankTitle: profile.rankTitle, points: 1320, favoriteCard: 'crystal', avatarEmoji: '🧙‍♂️', isUser: true },
-    { rank: 3, nickname: 'Shadow_Caster', rankTitle: '상급 마법사', points: 1280, favoriteCard: 'whisper', avatarEmoji: '🧝‍♂️' },
-    { rank: 4, nickname: 'Sparky_Leo', rankTitle: '중급 마법사', points: 1150, favoriteCard: 'pathway', avatarEmoji: '🧚' },
-    { rank: 5, nickname: 'Star_Seeker', rankTitle: '중급 마법사', points: 980, favoriteCard: 'torch', avatarEmoji: '🧙‍♀️' },
-    { rank: 6, nickname: 'Breeze_Master', rankTitle: '초급 마법사', points: 850, favoriteCard: 'courage', avatarEmoji: '🧝‍♀️' },
+    {
+      rank: 1,
+      nickname: '👑 박서우 (Park Seowoo)',
+      rankTitle: '은하수 수호 대마법사 (Grand Champion)',
+      points: 3950,
+      favoriteCard: 'radiant (서우의 별빛 마법)',
+      avatarEmoji: '🧙‍♂️',
+      isUser: true,
+    },
+    { rank: 2, nickname: '스타위자드 (민우)', rankTitle: '상급 마법사', points: 3240, favoriteCard: 'crystal', avatarEmoji: '🧙‍♀️' },
+    { rank: 3, nickname: '드래곤슬레이어 (지호)', rankTitle: '상급 마법사', points: 2850, favoriteCard: 'courage', avatarEmoji: '🐉' },
+    { rank: 4, nickname: '매직버니 (서연)', rankTitle: '중급 마법사', points: 2710, favoriteCard: 'whisper', avatarEmoji: '🐰' },
+    { rank: 5, nickname: '파이어볼트 (도윤)', rankTitle: '중급 마법사', points: 2540, favoriteCard: 'pathway', avatarEmoji: '⚡' },
+    { rank: 6, nickname: '샤이닝클라우드 (하은)', rankTitle: '초급 마법사', points: 2390, favoriteCard: 'torch', avatarEmoji: '☁️' },
   ]);
+
+  const handleCheerChampion = () => {
+    soundEngine.playSeowooCheerFanfare();
+    speechService.speakKorean('전국 1위 챔피언 대마법사 박서우님! 모두가 서우의 영어 스피킹 마법에 감탄하고 있어요!');
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-rose-950/80 via-slate-900/90 to-purple-950/80 border border-rose-500/30 rounded-3xl p-6 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-amber-950/80 via-slate-900/90 to-purple-950/80 border-2 border-amber-500/40 rounded-3xl p-6 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <span className="p-1.5 rounded-xl bg-amber-500/20 text-amber-300">
               <Trophy className="w-5 h-5" />
             </span>
             <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
-              Weekly League #24
+              Weekly League #24 • Champion Stage
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-white mt-1">
-            골드 마법사 리그 (Gold League)
+            골드 마법사 리그: 박서우(Seowoo) 1위 독주 중! 👑
           </h2>
           <p className="text-xs text-slate-300 mt-1">
             동일한 실력(AR {profile.arLevel})의 마법사 30명이 겨루는 주간 스피킹 리그입니다.
@@ -51,10 +64,18 @@ export const ArenaView: React.FC<ArenaViewProps> = ({ profile, onStartBattle }) 
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="bg-slate-950/80 p-3 rounded-2xl border border-slate-800 text-center">
-            <span className="text-[10px] text-slate-400">내 현재 순위</span>
-            <p className="text-xl font-black text-amber-400">2위 (승격권 🏆)</p>
-          </div>
+          <button
+            type="button"
+            onClick={handleCheerChampion}
+            className="bg-slate-950/90 p-3 rounded-2xl border-2 border-amber-400 text-center hover:scale-105 transition-transform"
+            title="박서우 챔피언 응원하기"
+          >
+            <span className="text-[10px] text-amber-300 font-bold">박서우 현재 순위</span>
+            <p className="text-xl font-black text-amber-400 flex items-center justify-center gap-1">
+              <span>1위 👑</span>
+              <Volume2 className="w-4 h-4 text-amber-300" />
+            </p>
+          </button>
 
           <button
             onClick={() => {

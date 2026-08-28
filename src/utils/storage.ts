@@ -9,32 +9,33 @@ import {
 } from '../types';
 import { ALL_SPELL_CARDS } from '../data/spellCards';
 
-const STORAGE_KEY_PROFILE = 'spellbook_profile_v2';
-const STORAGE_KEY_UTTERANCES = 'spellbook_utterances_v2';
-const STORAGE_KEY_QUESTS = 'spellbook_quests_v2';
-const STORAGE_KEY_REVIEW = 'spellbook_review_v2';
+const STORAGE_KEY_PROFILE = 'spellbook_profile_seowoo_v3';
+const STORAGE_KEY_UTTERANCES = 'spellbook_utterances_seowoo_v3';
+const STORAGE_KEY_QUESTS = 'spellbook_quests_seowoo_v3';
+const STORAGE_KEY_REVIEW = 'spellbook_review_seowoo_v3';
 
 export const INITIAL_CHILD_PROFILE: UserChildProfile = {
   id: 'child_001',
-  nickname: '루나마법사',
+  nickname: '박서우',
   grade: 5,
   avatarId: 'avatar_mage_star',
-  arLevel: 2.3,
-  wizardRank: 4,
-  rankTitle: '견습 마법 학도 (Apprentice Mage)',
-  xp: 420,
-  mana: 85,
-  gems: 14,
-  streakDays: 12,
+  arLevel: 2.5,
+  wizardRank: 5,
+  rankTitle: '은하수 수호 대마법사 (Archmage Seowoo)',
+  xp: 580,
+  mana: 95,
+  gems: 24,
+  streakDays: 15,
   streakActiveToday: true,
-  freezeCount: 2,
-  deckCardIds: ['card_courage', 'card_whisper', 'card_sparkle', 'card_crystal', 'card_brave'],
+  freezeCount: 3,
+  deckCardIds: ['card_seowoo_star', 'card_whisper', 'card_courage', 'card_crystal', 'card_brave'],
   collectedCards: {
-    card_courage: { rarity: 'SR', bestScore: 92, date: '2026-08-25' },
+    card_seowoo_star: { rarity: 'SSR', bestScore: 100, date: '2026-08-27' },
+    card_courage: { rarity: 'SR', bestScore: 95, date: '2026-08-25' },
     card_whisper: { rarity: 'SSR', bestScore: 98, date: '2026-08-26' },
-    card_sparkle: { rarity: 'N', bestScore: 78, date: '2026-08-24' },
-    card_crystal: { rarity: 'R', bestScore: 86, date: '2026-08-26' },
-    card_brave: { rarity: 'SR', bestScore: 90, date: '2026-08-27' },
+    card_sparkle: { rarity: 'N', bestScore: 88, date: '2026-08-24' },
+    card_crystal: { rarity: 'R', bestScore: 92, date: '2026-08-26' },
+    card_brave: { rarity: 'SR', bestScore: 94, date: '2026-08-27' },
   },
   unlockedChapters: ['ch_forest_01', 'ch_forest_02', 'ch_dragon_01', 'ch_sound_01'],
   exploredNodes: {
@@ -54,7 +55,7 @@ export const INITIAL_DAILY_QUESTS: DailyQuest[] = [
   {
     id: 'q1',
     title: 'Complete 1 Chapter',
-    titleKo: '오늘의 챕터 1개 완주하기',
+    titleKo: '박서우 마법사의 오늘의 챕터 1개 완주하기',
     type: 'chapter',
     current: 1,
     target: 1,
@@ -65,7 +66,7 @@ export const INITIAL_DAILY_QUESTS: DailyQuest[] = [
   {
     id: 'q2',
     title: 'Capture 3 Spell Cards',
-    titleKo: '새로운 스펠 카드 3장 포획하기',
+    titleKo: '서우의 스펠 도감에 마법 카드 3장 포획하기',
     type: 'capture',
     current: 2,
     target: 3,
@@ -76,7 +77,7 @@ export const INITIAL_DAILY_QUESTS: DailyQuest[] = [
   {
     id: 'q3',
     title: 'Achieve 5 PERFECTs',
-    titleKo: 'PERFECT 발음 5회 달성하기',
+    titleKo: 'PERFECT 발음 5회 달성하기 (서우 파워!)',
     type: 'precision',
     current: 3,
     target: 5,
@@ -87,8 +88,8 @@ export const INITIAL_DAILY_QUESTS: DailyQuest[] = [
 ];
 
 export const INITIAL_LEAGUE_PLAYERS: LeaguePlayer[] = [
-  { rank: 1, name: '스타위자드 (민우)', avatar: '🧙‍♂️', score: 3240, tier: 'Gold', streak: 18 },
-  { rank: 2, name: '루나마법사 (나)', avatar: '🌟', score: 2980, tier: 'Gold', isUser: true, streak: 12 },
+  { rank: 1, name: '👑 박서우 (Seowoo Park)', avatar: '🧙‍♂️', score: 3950, tier: 'Gold', isUser: true, streak: 15 },
+  { rank: 2, name: '스타위자드 (민우)', avatar: '🌟', score: 3240, tier: 'Gold', streak: 18 },
   { rank: 3, name: '드래곤슬레이어 (지호)', avatar: '🐉', score: 2850, tier: 'Gold', streak: 9 },
   { rank: 4, name: '매직버니 (서연)', avatar: '🐰', score: 2710, tier: 'Gold', streak: 14 },
   { rank: 5, name: '파이어볼트 (도윤)', avatar: '⚡', score: 2540, tier: 'Gold', streak: 6 },

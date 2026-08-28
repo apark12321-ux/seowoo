@@ -60,16 +60,18 @@ export const SpeakingBattle: React.FC<SpeakingBattleProps> = ({
   const [lastDamage, setLastDamage] = useState<{ amount: number; verdict: PronunciationVerdict } | null>(null);
   const [isShaking, setIsShaking] = useState<boolean>(false);
   const [noxReaction, setNoxReaction] = useState<'idle' | 'hit' | 'taunt'>('idle');
-  const [noxQuote, setNoxQuote] = useState<string>('그 카드의 마법은 제 발음보다 서툴걸요?!');
+  const [noxQuote, setNoxQuote] = useState<string>('으악! 대마법사 박서우(Seowoo)의 발음은 너무 강력해요!');
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Nox comical quips
+  // Nox comical quips addressing Seowoo
   const noxQuotes = [
+    '으악! 박서우 마법사의 완벽한 영어 발음이라니... 눈부셔요!',
+    '서우야 봐줘~! 카드를 돌려줄게!',
+    '대마법사 Seowoo의 목소리가 너무 강렬합니다!',
+    '박서우 마법사의 스피킹 마법은 당해낼 수가 없어요!',
     '그 카드의 마법은 제 발음보다 서툴걸요?!',
-    '으악! 발음이 너무 정확해서 눈이 부셔요!',
-    '잠깐만요! 혀를 그렇게 굴리는 건 반칙입니다!',
-    '다음 주문은 못 외칠걸요... 아마도?!',
+    '잠깐만요! 혀를 그렇게 유창하게 굴리는 건 반칙입니다!',
   ];
 
   // 8-second countdown loop
@@ -211,25 +213,25 @@ export const SpeakingBattle: React.FC<SpeakingBattleProps> = ({
   return (
     <div className={`min-h-[92vh] flex flex-col justify-between bg-slate-950 text-slate-100 p-4 sm:p-6 ${isShaking ? 'shake-hit' : ''}`}>
       {/* Battle Header */}
-      <header className="max-w-5xl mx-auto w-full flex items-center justify-between gap-3 bg-slate-900/80 p-3.5 rounded-2xl border border-rose-900/40">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-xl bg-rose-500/20 text-rose-400">
-            <Swords className="w-5 h-5" />
+      <header className="max-w-5xl mx-auto w-full flex items-center justify-between gap-3 bg-slate-900/90 p-4 rounded-2xl border border-rose-900/40">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-2xl bg-rose-500/20 text-rose-400">
+            <Swords className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-sm sm:text-base font-black text-white">
-              스피킹 배틀: 어둠의 도둑 녹스 (Nox)
+            <h2 className="text-base sm:text-lg md:text-xl font-black text-white">
+              ⚔️ 스피킹 배틀: 어둠의 도둑 녹스 (Nox)
             </h2>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-xs sm:text-sm text-slate-300 font-bold">
               제한 시간 내에 카드의 주문을 외쳐 녹스를 물리치세요!
             </p>
           </div>
         </div>
 
         {/* Combo Multiplier Flame */}
-        <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-amber-500/30">
-          <Flame className="w-4 h-4 text-amber-400 fill-amber-400 animate-bounce" />
-          <span className="font-black text-amber-300 text-sm">
+        <div className="flex items-center gap-2 bg-slate-950 px-3.5 py-2 rounded-2xl border border-amber-500/40 shadow-sm">
+          <Flame className="w-5 h-5 text-amber-400 fill-amber-400 animate-bounce" />
+          <span className="font-black text-amber-300 text-sm sm:text-base">
             COMBO x{comboLevel === 1 ? '1.0' : comboLevel === 2 ? '1.3' : comboLevel === 3 ? '1.6' : '2.0 MAX'}
           </span>
         </div>
@@ -238,18 +240,18 @@ export const SpeakingBattle: React.FC<SpeakingBattleProps> = ({
       {/* Main Battle Arena: Nox Villain & Wizard Visual */}
       <main className="max-w-5xl mx-auto w-full my-auto py-6 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
         {/* Nox Shadow Villain (Left) */}
-        <div className="bg-gradient-to-b from-purple-950/40 to-slate-900/90 border border-purple-800/40 rounded-3xl p-6 shadow-2xl flex flex-col items-center text-center space-y-4 relative overflow-hidden">
+        <div className="bg-gradient-to-b from-purple-950/40 to-slate-900/90 border border-purple-800/40 rounded-3xl p-6 sm:p-7 shadow-2xl flex flex-col items-center text-center space-y-4 relative overflow-hidden">
           {/* Nox HP Bar */}
-          <div className="w-full space-y-1">
-            <div className="flex items-center justify-between text-xs font-bold">
-              <span className="text-purple-300 flex items-center gap-1">
+          <div className="w-full space-y-1.5">
+            <div className="flex items-center justify-between text-xs sm:text-sm font-black">
+              <span className="text-purple-300 flex items-center gap-1.5">
                 <span>😈</span> 그림자 도둑 녹스
               </span>
-              <span className="text-rose-400 font-black">
+              <span className="text-rose-400 font-black text-sm">
                 {noxHp} / {noxMaxHp} HP
               </span>
             </div>
-            <div className="h-3.5 bg-slate-950 rounded-full overflow-hidden p-0.5 border border-slate-800">
+            <div className="h-4 bg-slate-950 rounded-full overflow-hidden p-0.5 border border-slate-800">
               <div
                 className="h-full bg-gradient-to-r from-rose-500 via-purple-500 to-indigo-500 rounded-full transition-all duration-500"
                 style={{ width: `${(noxHp / noxMaxHp) * 100}%` }}
@@ -268,41 +270,41 @@ export const SpeakingBattle: React.FC<SpeakingBattleProps> = ({
             >
               {/* Comical Eyes */}
               <div className="flex items-center gap-3">
-                <div className="w-3 h-5 bg-amber-400 rounded-full shadow-md shadow-amber-400 animate-pulse" />
-                <div className="w-3 h-5 bg-amber-400 rounded-full shadow-md shadow-amber-400 animate-pulse" />
+                <div className="w-3.5 h-5 bg-amber-400 rounded-full shadow-md shadow-amber-400 animate-pulse" />
+                <div className="w-3.5 h-5 bg-amber-400 rounded-full shadow-md shadow-amber-400 animate-pulse" />
               </div>
-              <span className="absolute bottom-2 text-2xl">
+              <span className="absolute bottom-2 text-3xl">
                 {noxReaction === 'hit' ? '😵' : noxReaction === 'taunt' ? '😏' : '😈'}
               </span>
             </div>
 
             {/* Damage Number Popup */}
             {lastDamage && lastDamage.amount > 0 && (
-              <div className="absolute -top-2 right-4 font-black text-2xl text-amber-300 animate-bounce drop-shadow-md">
+              <div className="absolute -top-2 right-2 font-black text-3xl text-amber-300 animate-bounce drop-shadow-md">
                 -{lastDamage.amount} DMG!
               </div>
             )}
           </div>
 
           {/* Nox Dialog Bubble */}
-          <div className="bg-slate-950/80 p-3 rounded-2xl border border-purple-900/60 text-xs text-purple-200 w-full font-medium">
+          <div className="bg-slate-950/90 p-3.5 rounded-2xl border border-purple-900/60 text-xs sm:text-sm text-purple-200 w-full font-bold leading-relaxed">
             "{noxQuote}"
           </div>
         </div>
 
         {/* Wizard Player & Active Spell Card (Right) */}
-        <div className="bg-gradient-to-b from-indigo-950/40 to-slate-900/90 border border-indigo-800/40 rounded-3xl p-6 shadow-2xl flex flex-col justify-between space-y-4">
+        <div className="bg-gradient-to-b from-indigo-950/40 to-slate-900/90 border border-indigo-800/40 rounded-3xl p-6 sm:p-7 shadow-2xl flex flex-col justify-between space-y-4">
           {/* Wizard HP Bar */}
-          <div className="w-full space-y-1">
-            <div className="flex items-center justify-between text-xs font-bold">
-              <span className="text-indigo-300 flex items-center gap-1">
-                <span>🧙‍♂️</span> {profile.nickname} (내 마법사)
+          <div className="w-full space-y-1.5">
+            <div className="flex items-center justify-between text-xs sm:text-sm font-black">
+              <span className="text-amber-300 flex items-center gap-1.5">
+                <span>👑</span> 대마법사 {profile.nickname} (Seowoo Park)
               </span>
-              <span className="text-emerald-400 font-black">
+              <span className="text-emerald-400 font-black text-sm">
                 {wizardHp} / {wizardMaxHp} HP
               </span>
             </div>
-            <div className="h-3.5 bg-slate-950 rounded-full overflow-hidden p-0.5 border border-slate-800">
+            <div className="h-4 bg-slate-950 rounded-full overflow-hidden p-0.5 border border-slate-800">
               <div
                 className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500"
                 style={{ width: `${(wizardHp / wizardMaxHp) * 100}%` }}
@@ -311,15 +313,15 @@ export const SpeakingBattle: React.FC<SpeakingBattleProps> = ({
           </div>
 
           {/* Lumen Cheering Companion In Battle */}
-          <div className="bg-slate-950/60 p-2.5 rounded-2xl border border-indigo-400/30">
+          <div className="bg-slate-950/60 p-3 rounded-2xl border border-indigo-400/30">
             <LumenSprite
               mood={isListening ? 'cheer' : comboLevel > 2 ? 'excited' : 'happy'}
               message={
                 isListening
-                  ? `좋아, '${currentCard?.word}'! 큰 목소리로 주문을 외쳐!`
+                  ? `서우야! '${currentCard?.word}' 주문을 큰 목소리로 외쳐봐!`
                   : comboLevel > 1
-                  ? `멋져! ${comboLevel}연속 콤보 마법 발동 중! 🔥`
-                  : `루멘: "${currentCard?.word}" 주문을 외치면 강력한 마법 탄환이 날아가!`
+                  ? `대마법사 서우의 ${comboLevel}연속 콤보 마법 발동 중! 🔥`
+                  : `루멘: 서우가 "${currentCard?.word}" 주문을 외치면 강력한 황금빛 마법 탄환이 발사돼!`
               }
               size="sm"
             />
@@ -327,39 +329,39 @@ export const SpeakingBattle: React.FC<SpeakingBattleProps> = ({
 
           {/* Active Spell Card Spotlight */}
           {currentCard ? (
-            <div className="bg-slate-950/90 rounded-2xl p-4 border-2 border-amber-500/40 shadow-xl space-y-3">
+            <div className="bg-slate-950/90 rounded-2xl p-5 border-2 border-amber-500/40 shadow-xl space-y-3.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-400 text-slate-950">
+                  <span className="px-3 py-1 rounded-full text-xs sm:text-sm font-black bg-amber-400 text-slate-950">
                     {currentCard.rarity}
                   </span>
-                  <span className="text-xs font-bold uppercase text-amber-300">
+                  <span className="text-xs sm:text-sm font-bold uppercase text-amber-300">
                     {currentCard.element} 속성
                   </span>
                 </div>
 
                 {/* Countdown Timer */}
-                <div className="flex items-center gap-1 text-xs font-extrabold text-rose-400 bg-rose-950/60 px-2.5 py-1 rounded-full border border-rose-500/30">
-                  <Clock className="w-3.5 h-3.5 animate-spin" />
+                <div className="flex items-center gap-1.5 text-xs sm:text-sm font-black text-rose-400 bg-rose-950/60 px-3 py-1 rounded-full border border-rose-500/30">
+                  <Clock className="w-4 h-4 animate-spin" />
                   <span>00:0{timeLeft}</span>
                 </div>
               </div>
 
-              <div className="text-center py-2 space-y-1">
-                <h3 className="text-2xl sm:text-3xl font-black text-white tracking-wider">
+              <div className="text-center py-2 space-y-1.5">
+                <h3 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-wider">
                   {currentCard.word}
                 </h3>
-                <p className="text-xs font-mono text-amber-400 font-bold">
+                <p className="text-sm sm:text-base font-mono text-amber-400 font-bold">
                   {currentCard.ipa}
                 </p>
-                <p className="text-xs text-slate-300 font-medium">
-                  {currentCard.meaningKo}
+                <p className="text-sm sm:text-base text-slate-200 font-bold">
+                  마법 뜻: <span className="text-amber-300">{currentCard.meaningKo}</span>
                 </p>
               </div>
 
-              <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
-                <span className="text-slate-400">기본 마법 데미지</span>
-                <span className="font-extrabold text-amber-400">
+              <div className="bg-slate-900 p-3 rounded-xl border border-slate-800 flex items-center justify-between text-xs sm:text-sm">
+                <span className="text-slate-300 font-bold">기본 마법 공격력</span>
+                <span className="font-black text-amber-400 text-sm sm:text-base">
                   ⚡ {currentCard.baseAttack} ATK
                 </span>
               </div>
@@ -375,7 +377,7 @@ export const SpeakingBattle: React.FC<SpeakingBattleProps> = ({
               onMouseUp={handleStopMic}
               onTouchStart={handleStartMic}
               onTouchEnd={handleStopMic}
-              className={`w-full py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-xl transition-all ${
+              className={`w-full py-4.5 px-6 rounded-2xl font-black text-sm sm:text-base md:text-lg flex items-center justify-center gap-2 shadow-xl transition-all ${
                 isListening
                   ? 'bg-rose-600 text-white ring-4 ring-rose-500/40 animate-pulse'
                   : 'bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 shadow-amber-500/25'
@@ -383,12 +385,12 @@ export const SpeakingBattle: React.FC<SpeakingBattleProps> = ({
             >
               {isListening ? (
                 <>
-                  <Mic className="w-5 h-5 animate-bounce" />
+                  <Mic className="w-6 h-6 animate-bounce" />
                   <span>주문을 외치는 중...! (손을 떼면 발사)</span>
                 </>
               ) : (
                 <>
-                  <Mic className="w-5 h-5 fill-current" />
+                  <Mic className="w-6 h-6 fill-current" />
                   <span>🎙 꾹 누르고 주문 '{currentCard?.word}' 외치기!</span>
                 </>
               )}

@@ -39,11 +39,12 @@ export const LumenSprite: React.FC<LumenSpriteProps> = ({
   const [heartPop, setHeartPop] = useState(false);
 
   const funQuotes = [
-    '우와! 네 목소리는 최고의 마법 에너지야! 🌟',
-    '틀려도 괜찮아! 다시 도전하면 마법이 두 배로 강해져! 💪',
-    '오늘 모은 스펠 카드로 배틀에서 멋지게 영창해보자! 🪄',
-    '마법 도감에 카드가 가득 차고 있어! 정말 멋지다! 📖✨',
-    '영어 발음이 점점 마법사처럼 유창해지고 있어! 🧙‍♂️',
+    '우와! 박서우 마법사님의 목소리는 최고의 마법 에너지야! 🌟',
+    '서우야, 틀려도 괜찮아! 다시 도전하면 마법이 두 배로 강해져! 💪',
+    '오늘 모은 스펠 카드로 배틀에서 멋지게 영창해보자! Seowoo can do it! 🪄',
+    '서우의 마법 도감에 전설의 카드가 가득 차고 있어! 정말 멋지다! 📖✨',
+    '대마법사 박서우님의 영어 발음이 점점 유창해지고 있어! 🧙‍♂️👑',
+    'Seowoo is the brightest wizard in SPELLBOOK! ✨',
   ];
 
   const handleSpriteClick = (e: React.MouseEvent) => {
@@ -57,7 +58,11 @@ export const LumenSprite: React.FC<LumenSpriteProps> = ({
     if (onTap) {
       onTap();
     } else if (canSpeak && message) {
-      speechService.speak(message, 1.0);
+      if (message.match(/[가-힣]/)) {
+        speechService.speakKorean(message);
+      } else {
+        speechService.speak(message, 1.0);
+      }
     }
   };
 
@@ -65,7 +70,11 @@ export const LumenSprite: React.FC<LumenSpriteProps> = ({
     e.stopPropagation();
     soundEngine.playMicBeep();
     if (message) {
-      speechService.speak(message, 1.0);
+      if (message.match(/[가-힣]/)) {
+        speechService.speakKorean(message);
+      } else {
+        speechService.speak(message, 1.0);
+      }
     }
   };
 
@@ -221,16 +230,16 @@ export const LumenSprite: React.FC<LumenSpriteProps> = ({
         </button>
 
         {/* Cute Name badge with accessory change button */}
-        <div className="flex items-center gap-1 mt-1">
-          <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 shadow-md flex items-center gap-1">
+        <div className="flex items-center gap-1.5 mt-1.5">
+          <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 shadow-md flex items-center gap-1">
             <span>루멘</span>
-            <Sparkles className="w-2.5 h-2.5 text-amber-900" />
+            <Sparkles className="w-3 h-3 text-amber-900" />
           </span>
           {showCostumeToggle && (
             <button
               onClick={cycleAccessory}
               title="루멘 모자 바꾸기"
-              className="text-[9px] bg-slate-800 text-amber-300 px-1 py-0.5 rounded-md hover:bg-slate-700 transition-colors border border-amber-400/30"
+              className="text-[11px] font-bold bg-slate-800 text-amber-300 px-1.5 py-0.5 rounded-md hover:bg-slate-700 transition-colors border border-amber-400/30"
             >
               모자🎨
             </button>
@@ -240,16 +249,16 @@ export const LumenSprite: React.FC<LumenSpriteProps> = ({
 
       {/* Cheerful Speech Bubble */}
       {message && (
-        <div className="flex-1 bg-gradient-to-br from-slate-900/95 via-indigo-950/90 to-slate-900/95 border-2 border-amber-400/50 rounded-3xl rounded-tl-sm p-3.5 shadow-2xl backdrop-blur-md relative transform transition-transform hover:-translate-y-0.5">
-          <div className="flex items-start justify-between gap-2.5">
+        <div className="flex-1 bg-gradient-to-br from-slate-900/95 via-indigo-950/90 to-slate-900/95 border-2 border-amber-400/50 rounded-3xl rounded-tl-sm p-4 sm:p-4.5 shadow-2xl backdrop-blur-md relative transform transition-transform hover:-translate-y-0.5">
+          <div className="flex items-start justify-between gap-3">
             <div className="flex-1">
-              <div className="flex items-center gap-1.5 mb-1">
-                <span className="text-[10px] font-extrabold uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40 inline-flex items-center gap-1">
-                  <Wand2 className="w-2.5 h-2.5 text-amber-300" />
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <span className="text-xs font-extrabold uppercase tracking-wide px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40 inline-flex items-center gap-1">
+                  <Wand2 className="w-3 h-3 text-amber-300" />
                   요정 친구의 마법 팁
                 </span>
               </div>
-              <p className="text-xs sm:text-sm font-bold text-amber-100 leading-snug">
+              <p className="text-sm sm:text-base md:text-lg font-bold text-amber-100 leading-relaxed">
                 {message}
               </p>
             </div>
@@ -258,18 +267,18 @@ export const LumenSprite: React.FC<LumenSpriteProps> = ({
               <button
                 type="button"
                 onClick={handleSpeak}
-                className="p-2 text-amber-300 bg-amber-400/20 hover:bg-amber-400/30 active:scale-90 rounded-2xl transition-all border border-amber-400/40 flex-shrink-0 shadow-sm"
+                className="p-2.5 text-amber-300 bg-amber-400/20 hover:bg-amber-400/30 active:scale-90 rounded-2xl transition-all border border-amber-400/40 flex-shrink-0 shadow-sm"
                 title="루멘 목소리 듣기"
                 aria-label="루멘 목소리 듣기"
               >
-                <Volume2 className="w-4 h-4 text-amber-300" />
+                <Volume2 className="w-5 h-5 text-amber-300" />
               </button>
             )}
           </div>
 
           {subMessage && (
-            <div className="mt-2 text-[11px] sm:text-xs text-amber-200/90 font-medium bg-amber-950/40 rounded-xl p-2 border border-amber-500/20 flex items-center gap-1.5">
-              <Star className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 fill-amber-400" />
+            <div className="mt-2.5 text-xs sm:text-sm text-amber-200 font-medium bg-amber-950/40 rounded-xl p-2.5 border border-amber-500/20 flex items-center gap-2 leading-relaxed">
+              <Star className="w-4 h-4 text-amber-400 flex-shrink-0 fill-amber-400" />
               <span>{subMessage}</span>
             </div>
           )}

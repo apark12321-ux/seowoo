@@ -9,8 +9,11 @@ import {
   Share2,
   RotateCcw,
   BookOpen,
+  Volume2,
+  Crown,
 } from 'lucide-react';
 import { soundEngine } from '../../utils/soundEngine';
+import { speechService } from '../../utils/speech';
 
 interface BattleResultProps {
   result: 'win' | 'lose';
@@ -33,12 +36,17 @@ export const BattleResult: React.FC<BattleResultProps> = ({
 }) => {
   const isWin = result === 'win';
 
+  const handlePlayVictoryCheer = () => {
+    soundEngine.playSeowooCheerFanfare();
+    speechService.speakKorean('대마법사 박서우님! 완벽한 영어 스펠로 어둠의 도둑 녹스를 격퇴하고 마법 세계를 구하셨어요! 축하해요 서우야!');
+  };
+
   const handleShare = () => {
     soundEngine.playClick();
     if (navigator.share) {
       navigator.share({
-        title: 'SPELLBOOK 마법사 승리 리포트',
-        text: `SPELLBOOK에서 ${damageTotal} 데미지와 ${maxCombo}연속 콤보로 녹스를 물리쳤어요! 🔥`,
+        title: '대마법사 박서우의 SPELLBOOK 승리 리포트',
+        text: `대마법사 박서우(Seowoo)가 ${damageTotal} 데미지와 ${maxCombo}연속 콤보로 녹스를 물리쳤어요! 🔥`,
       }).catch(() => {});
     } else {
       alert('승리 인증 카드가 클립보드에 복사되었습니다! (친구에게 자랑해보세요 ✨)');
@@ -47,26 +55,29 @@ export const BattleResult: React.FC<BattleResultProps> = ({
 
   return (
     <div className="min-h-[90vh] flex items-center justify-center p-4 bg-slate-950">
-      <div className="bg-slate-900 border border-indigo-500/30 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl text-center space-y-6 relative overflow-hidden animate-fadeIn">
+      <div className="bg-slate-900 border-2 border-amber-500/40 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl text-center space-y-6 relative overflow-hidden animate-fadeIn">
         {/* Shimmer aura */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
 
         {/* Victory/Defeat Icon */}
         <div className="mx-auto w-24 h-24 rounded-3xl bg-gradient-to-br from-amber-400 to-yellow-500 p-0.5 shadow-xl shadow-amber-500/30 flex items-center justify-center">
           <div className="w-full h-full bg-slate-950 rounded-[22px] flex items-center justify-center text-4xl">
-            {isWin ? '🏆' : '🛡️'}
+            {isWin ? '👑' : '🛡️'}
           </div>
         </div>
 
         {/* Title */}
-        <div className="space-y-1">
+        <div className="space-y-1.5">
+          <span className="text-xs font-black text-amber-400 uppercase tracking-wider bg-amber-500/10 px-3 py-1 rounded-full border border-amber-400/30">
+            Park Seowoo Victory
+          </span>
           <h2 className="text-2xl sm:text-3xl font-black text-white">
-            {isWin ? '녹스 격퇴 완료! VICTORY' : '마법 에너지가 부족해요'}
+            {isWin ? '박서우 대마법사의 대승리! 🏆' : '마법 에너지가 부족해요'}
           </h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs sm:text-sm text-slate-300 font-medium leading-relaxed">
             {isWin
-              ? `${chapterTitle}의 어둠을 걷어내고 평화를 되찾았습니다!`
-              : '다시 도전하면 훔쳐간 카드를 완전히 되찾을 수 있어요.'}
+              ? `서우 마법사의 완벽한 발음으로 ${chapterTitle}의 어둠을 걷어냈습니다!`
+              : '서우야, 다시 도전하면 훔쳐간 카드를 완전히 되찾을 수 있어! 파이팅!'}
           </p>
         </div>
 
@@ -90,9 +101,21 @@ export const BattleResult: React.FC<BattleResultProps> = ({
 
         {/* Next Chapter Unlocked notice */}
         {isWin && (
-          <div className="flex items-center justify-center gap-2 bg-emerald-500/10 border border-emerald-500/30 p-2.5 rounded-xl text-xs font-bold text-emerald-400">
-            <CheckCircle2 className="w-4 h-4" />
-            <span>다음 챕터가 해금되었습니다!</span>
+          <div className="space-y-2">
+            <div className="flex items-center justify-center gap-2 bg-emerald-500/10 border border-emerald-500/30 p-2.5 rounded-xl text-xs font-bold text-emerald-400">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>다음 챕터가 해금되었습니다!</span>
+            </div>
+
+            {/* Audio Praise Button */}
+            <button
+              type="button"
+              onClick={handlePlayVictoryCheer}
+              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-pink-500/20 to-purple-500/20 hover:from-pink-500/30 hover:to-purple-500/30 border border-pink-400/40 text-pink-300 text-xs font-black flex items-center justify-center gap-2 transition-all shadow-sm"
+            >
+              <Volume2 className="w-4 h-4 text-pink-400" />
+              <span>🔊 서우 승리 축하 음성 듣기 (클릭)</span>
+            </button>
           </div>
         )}
 

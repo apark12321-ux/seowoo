@@ -14,6 +14,7 @@ class SpeechService {
   private audioStream: MediaStream | null = null;
   private audioAnalyser: AnalyserNode | null = null;
   private audioCtx: AudioContext | null = null;
+  private cachedVoices: SpeechSynthesisVoice[] = [];
 
   constructor() {
     const win = typeof window !== 'undefined' ? (window as IWindow) : null;
@@ -30,7 +31,71 @@ class SpeechService {
           this.recognition = null;
         }
       }
+
+      if (win.speechSynthesis) {
+        this.updateVoices();
+        if (typeof win.speechSynthesis.onvoiceschanged !== 'undefined') {
+          win.speechSynthesis.onvoiceschanged = () => this.updateVoices();
+        }
+      }
     }
+  }
+
+  private updateVoices() {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      this.cachedVoices = window.speechSynthesis.getVoices();
+    }
+  }
+
+  private getBestKoreanVoice(): SpeechSynthesisVoice | null {
+    const voices = this.cachedVoices.length > 0 
+      ? this.cachedVoices 
+      : (typeof window !== 'undefined' && window.speechSynthesis ? window.speechSynthesis.getVoices() : []);
+    
+    const koVoices = voices.filter((v) => v.lang === 'ko-KR' || v.lang.startsWith('ko') || v.lang.includes('KO'));
+    if (koVoices.length === 0) return null;
+
+    // Priority 1: High quality Natural / Neural / Online voices (Edge/Chrome/Safari)
+    const naturalVoice = koVoices.find(
+      (v) =>
+        v.name.includes('Natural') ||
+        v.name.includes('Neural') ||
+        v.name.includes('Online') ||
+        v.name.includes('Google') ||
+        v.name.includes('SunHi') ||
+        v.name.includes('Yuna') ||
+        v.name.includes('Sora') ||
+        v.name.includes('Heami')
+    );
+    if (naturalVoice) return naturalVoice;
+
+    // Priority 2: Any non-default local voice
+    const nonDefault = koVoices.find((v) => !v.localService);
+    if (nonDefault) return nonDefault;
+
+    return koVoices[0];
+  }
+
+  private getBestEnglishVoice(): SpeechSynthesisVoice | null {
+    const voices = this.cachedVoices.length > 0 
+      ? this.cachedVoices 
+      : (typeof window !== 'undefined' && window.speechSynthesis ? window.speechSynthesis.getVoices() : []);
+
+    const enVoices = voices.filter((v) => v.lang === 'en-US' || v.lang.startsWith('en'));
+    if (enVoices.length === 0) return null;
+
+    const naturalEn = enVoices.find(
+      (v) =>
+        v.name.includes('Natural') ||
+        v.name.includes('Neural') ||
+        v.name.includes('Google') ||
+        v.name.includes('Samantha') ||
+        v.name.includes('Jenny') ||
+        v.name.includes('Aria') ||
+        v.name.includes('Guy') ||
+        v.name.includes('Alex')
+    );
+    return naturalEn || enVoices[0];
   }
 
   public isSupported(): boolean {
@@ -38,7 +103,7 @@ class SpeechService {
   }
 
   // Speak text with Native SpeechSynthesis
-  public speak(text: string, rate: number = 1.0, onEnd?: () => void): Promise<void> {
+  public speak(text: string, rate: number = 1.05, onEnd?: () => void): Promise<void> {
     return new Promise((resolve) => {
       if (typeof window === 'undefined' || !window.speechSynthesis) {
         resolve();
@@ -50,13 +115,9 @@ class SpeechService {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = rate;
       utterance.lang = 'en-US';
-      utterance.pitch = 1.05; // Slightly clear & friendly
+      utterance.pitch = 1.02;
 
-      // Select natural English voice if available
-      const voices = window.speechSynthesis.getVoices();
-      const preferred = voices.find(
-        (v) => (v.lang === 'en-US' || v.lang.startsWith('en')) && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Samantha') || v.name.includes('Alex'))
-      );
+      const preferred = this.getBestEnglishVoice();
       if (preferred) {
         utterance.voice = preferred;
       }
@@ -74,8 +135,8 @@ class SpeechService {
     });
   }
 
-  // Speak Korean cheer specifically for Seowoo (Park Seowoo)
-  public speakKorean(text: string, rate: number = 1.05, onEnd?: () => void): Promise<void> {
+  // Speak Korean cheer specifically for Seowoo (Park Seowoo) with fast, crisp, natural speed (1.45x)
+  public speakKorean(text: string, rate: number = 1.45, onEnd?: () => void): Promise<void> {
     return new Promise((resolve) => {
       if (typeof window === 'undefined' || !window.speechSynthesis) {
         resolve();
@@ -85,12 +146,11 @@ class SpeechService {
       window.speechSynthesis.cancel();
 
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = rate;
+      utterance.rate = rate; // 1.45x - 1.5x fast & crisp natural pace
       utterance.lang = 'ko-KR';
-      utterance.pitch = 1.15; // Bright, joyful child-friendly companion pitch
+      utterance.pitch = 1.02; // Natural clear tone
 
-      const voices = window.speechSynthesis.getVoices();
-      const koVoice = voices.find((v) => v.lang === 'ko-KR' || v.lang.startsWith('ko'));
+      const koVoice = this.getBestKoreanVoice();
       if (koVoice) {
         utterance.voice = koVoice;
       }

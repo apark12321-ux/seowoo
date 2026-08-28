@@ -102,8 +102,8 @@ class SpeechService {
     return !!this.recognition;
   }
 
-  // Speak text with Native SpeechSynthesis
-  public speak(text: string, rate: number = 1.05, onEnd?: () => void): Promise<void> {
+  // Speak text with Native SpeechSynthesis (Default 0.8x for clear, steady English pronunciation)
+  public speak(text: string, rate: number = 0.8, onEnd?: () => void): Promise<void> {
     return new Promise((resolve) => {
       if (typeof window === 'undefined' || !window.speechSynthesis) {
         resolve();
@@ -113,9 +113,9 @@ class SpeechService {
       window.speechSynthesis.cancel(); // Stop any pending speech
 
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = rate;
+      utterance.rate = rate; // 0.8x steady & articulate English pace
       utterance.lang = 'en-US';
-      utterance.pitch = 1.02;
+      utterance.pitch = 1.0;
 
       const preferred = this.getBestEnglishVoice();
       if (preferred) {

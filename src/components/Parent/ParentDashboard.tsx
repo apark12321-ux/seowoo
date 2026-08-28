@@ -272,7 +272,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 </div>
 
                 <button
-                  onClick={() => speechService.speak(rec.word, 0.9)}
+                  onClick={() => speechService.speak(rec.word, 0.8)}
                   className="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-1.5 transition-colors"
                 >
                   <Volume2 className="w-3.5 h-3.5" />

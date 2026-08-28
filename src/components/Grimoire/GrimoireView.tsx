@@ -485,7 +485,7 @@ export const GrimoireView: React.FC<GrimoireViewProps> = ({
                 <button
                   onClick={() => {
                     soundEngine.playClick();
-                    speechService.speak(item.word, 0.9);
+                    speechService.speak(item.word, 0.8);
                   }}
                   className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-1.5"
                 >
@@ -544,7 +544,7 @@ export const GrimoireView: React.FC<GrimoireViewProps> = ({
 
             <div className="flex items-center gap-2 pt-2">
               <button
-                onClick={() => speechService.speak(selectedCard.word, 0.9)}
+                onClick={() => speechService.speak(selectedCard.word, 0.8)}
                 className="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-1.5"
               >
                 <Volume2 className="w-4 h-4" />

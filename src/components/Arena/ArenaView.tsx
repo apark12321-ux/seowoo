@@ -179,7 +179,7 @@ export const ArenaView: React.FC<ArenaViewProps> = ({ profile, onStartBattle }) 
                 </div>
 
                 <button
-                  onClick={() => speechService.speak(ranker.favoriteCard, 1.0)}
+                  onClick={() => speechService.speak(ranker.favoriteCard, 0.8)}
                   className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold"
                   title="대표 스펠 발음 듣기"
                 >

@@ -43,7 +43,7 @@ export const WordCaptureOverlay: React.FC<WordCaptureOverlayProps> = ({
   // Auto trigger card speech practice
   const playNativeAudio = () => {
     soundEngine.playClick();
-    speechService.speak(card.word, 0.9);
+    speechService.speak(card.word, 0.8);
   };
 
   const handleStartMic = () => {

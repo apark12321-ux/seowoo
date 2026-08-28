@@ -61,7 +61,7 @@ export const LumenSprite: React.FC<LumenSpriteProps> = ({
       if (message.match(/[가-힣]/)) {
         speechService.speakKorean(message);
       } else {
-        speechService.speak(message, 1.0);
+        speechService.speak(message, 0.8);
       }
     }
   };
@@ -73,7 +73,7 @@ export const LumenSprite: React.FC<LumenSpriteProps> = ({
       if (message.match(/[가-힣]/)) {
         speechService.speakKorean(message);
       } else {
-        speechService.speak(message, 1.0);
+        speechService.speak(message, 0.8);
       }
     }
   };

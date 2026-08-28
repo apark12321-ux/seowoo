@@ -62,7 +62,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
   const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [micLevel, setMicLevel] = useState<number>(0);
-  const [speechSpeed, setSpeechSpeed] = useState<0.75 | 1.0 | 1.25>(1.0);
+  const [speechSpeed, setSpeechSpeed] = useState<0.6 | 0.8 | 1.0>(0.8);
   const [fontSize, setFontSize] = useState<'normal' | 'large' | 'xlarge'>('normal');
   const [showKoTranslation, setShowKoTranslation] = useState<boolean>(false);
 
@@ -172,7 +172,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
 
   const handleWordClick = (wordToken: WordToken) => {
     soundEngine.playClick();
-    speechService.speak(wordToken.cleanWord, 0.9);
+    speechService.speak(wordToken.cleanWord, 0.8);
     setActiveWordTip(wordToken);
 
     // If it's a magical highlight token, open word capture overlay
@@ -242,7 +242,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
           <div className="hidden sm:flex items-center gap-1 bg-slate-950/80 p-1.5 rounded-2xl border border-slate-800 text-xs sm:text-sm font-bold">
             <button
               onClick={() => {
-                const nextSpeed = speechSpeed === 0.75 ? 1.0 : speechSpeed === 1.0 ? 1.25 : 0.75;
+                const nextSpeed = speechSpeed === 0.8 ? 1.0 : speechSpeed === 1.0 ? 0.6 : 0.8;
                 setSpeechSpeed(nextSpeed);
               }}
               className="px-2.5 py-1 rounded-xl text-amber-300 font-extrabold hover:bg-slate-800"
@@ -380,7 +380,7 @@ export const InteractiveReader: React.FC<InteractiveReaderProps> = ({
                 </span>
               </div>
               <button
-                onClick={() => speechService.speak(activeWordTip.cleanWord, 0.9)}
+                onClick={() => speechService.speak(activeWordTip.cleanWord, 0.8)}
                 className="p-2 text-indigo-300 hover:text-white bg-indigo-600/30 hover:bg-indigo-600 rounded-xl transition-all"
                 title="단어 발음 듣기"
               >

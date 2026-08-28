@@ -182,7 +182,7 @@ export const BranchChoiceOverlay: React.FC<BranchChoiceOverlayProps> = ({
                     onClick={(e) => {
                       e.stopPropagation();
                       soundEngine.playClick();
-                      speechService.speak(choice.textEn, 0.95);
+                      speechService.speak(choice.textEn, 0.8);
                     }}
                     className="p-2 text-slate-400 hover:text-amber-300 hover:bg-slate-800 rounded-xl transition-colors"
                     title="선택지 발음 듣기"

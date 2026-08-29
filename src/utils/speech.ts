@@ -207,41 +207,49 @@ class SpeechService {
     // Start mic amplitude monitor
     this.startMicMonitor(onMicLevel);
 
-    if (!this.recognition) {
-      // Fallback timer if Speech API is not directly present
+    const win = typeof window !== 'undefined' ? (window as IWindow) : null;
+    const SpeechRecognitionClass = win ? (win.SpeechRecognition || win.webkitSpeechRecognition) : null;
+
+    if (!SpeechRecognitionClass) {
+      // If Web Speech is not supported, still allow fallback recording state
       return true;
     }
 
     try {
-      this.recognition.onresult = (event: any) => {
+      const recognition = new SpeechRecognitionClass();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+      recognition.maxAlternatives = 3;
+
+      recognition.onresult = (event: any) => {
         let interim = '';
         let final = '';
 
         for (let i = event.resultIndex; i < event.results.length; ++i) {
-          if (event.results[i].isFinal) {
-            final += event.results[i][0].transcript;
+          const item = event.results[i];
+          if (item.isFinal) {
+            final += item[0].transcript + ' ';
           } else {
-            interim += event.results[i][0].transcript;
+            interim += item[0].transcript;
           }
         }
 
-        if (final) {
+        if (final.trim()) {
           onResult(final.trim(), true);
-        } else if (interim) {
+        } else if (interim.trim()) {
           onResult(interim.trim(), false);
         }
       };
 
-      this.recognition.onerror = (event: any) => {
-        // If error occurs, report but keep fallback monitor running
+      recognition.onerror = (event: any) => {
         if (event.error !== 'no-speech') {
           if (onError) onError(event.error || 'speech_recognition_error');
         }
       };
 
-      this.recognition.onend = () => {
+      recognition.onend = () => {
         if (this.isListening && this.recognition) {
-          // If still marked as listening, restart recognition (prevent unexpected cutoffs)
           try {
             this.recognition.start();
           } catch {
@@ -250,6 +258,7 @@ class SpeechService {
         }
       };
 
+      this.recognition = recognition;
       this.recognition.start();
       return true;
     } catch (err: any) {
@@ -262,10 +271,14 @@ class SpeechService {
     this.isListening = false;
     if (this.recognition) {
       try {
+        this.recognition.onend = null;
+        this.recognition.onerror = null;
+        this.recognition.onresult = null;
         this.recognition.stop();
       } catch {
         // ignore
       }
+      this.recognition = null;
     }
     this.stopMicMonitor();
   }

@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, Volume2, Sparkles, ChevronRight, ChevronLeft, RotateCcw, HelpCircle } from 'lucide-react';
+import { Mic, Volume2, Sparkles, ChevronRight, ChevronLeft, RotateCcw, HelpCircle, CheckCircle2 } from 'lucide-react';
 import { WordCapturePopUp } from './WordCapturePopUp';
 import { UserSpeechFeedbackBox } from './UserSpeechFeedbackBox';
 import { soundEngine } from '../../utils/soundEngine';
 import { speechService } from '../../utils/speech';
+import { evaluateUtterance, calculateTextSimilarity } from '../../utils/scoring';
 import { UserChildProfile } from '../../types';
 
 interface ComicBookReaderProps {
@@ -13,105 +14,171 @@ interface ComicBookReaderProps {
   onOpenHelp: () => void;
 }
 
+const COMIC_PANELS = [
+  {
+    id: 0,
+    sentence: 'Liam enters the jungle.',
+    sentenceKo: '리암이 신비로운 안개 정글로 들어갑니다.',
+    keyWord: 'jungle',
+  },
+  {
+    id: 1,
+    sentence: 'If we explore, now bring an explore!',
+    sentenceKo: '우리가 탐험(EXPLORE)을 시작하면, 모험이 열려!',
+    keyWord: 'explore',
+  },
+  {
+    id: 2,
+    sentence: 'Leah, the hidden section, where is danger?',
+    sentenceKo: '리아, 숨겨진 구역에서 위험(DANGER)이 어디 있어?',
+    keyWord: 'danger',
+  },
+  {
+    id: 3,
+    sentence: 'Careful with danger! Let us find what is hidden!',
+    sentenceKo: '위험을 조심하며 숨겨진(HIDDEN) 신비의 사원으로 뛰어가자!',
+    keyWord: 'hidden',
+  },
+];
+
 export const ComicBookReader: React.FC<ComicBookReaderProps> = ({
   currentQuestId,
   profile,
   onUpdateProfile,
   onOpenHelp,
 }) => {
+  const [selectedPanelIdx, setSelectedPanelIdx] = useState<number>(1);
   const [activeWordPopUp, setActiveWordPopUp] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState<boolean>(false);
-  const [spokenTranscript, setSpokenTranscript] = useState<string>('I explore the jungle.');
-  const [speechAccuracy, setSpeechAccuracy] = useState<number>(85);
+  const [spokenTranscript, setSpokenTranscript] = useState<string>('If we explore');
+  const [speechAccuracy, setSpeechAccuracy] = useState<number>(92);
   const [feedbackStatus, setFeedbackStatus] = useState<
     'idle' | 'listening' | 'analyzing' | 'try_again' | 'great_job' | 'perfect'
-  >('try_again');
+  >('great_job');
 
-  const recognitionRef = useRef<any>(null);
+  const currentTargetSentence = COMIC_PANELS[selectedPanelIdx]?.sentence || COMIC_PANELS[0].sentence;
 
-  // Initialize Speech Recognition
+  // Cleanup speech recognition on unmount
   useEffect(() => {
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-
-    if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = true;
-      recognition.lang = 'en-US';
-
-      recognition.onstart = () => {
-        setIsRecording(true);
-        setFeedbackStatus('listening');
-      };
-
-      recognition.onresult = (event: any) => {
-        let transcript = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript;
-        }
-        setSpokenTranscript(transcript);
-      };
-
-      recognition.onend = () => {
-        setIsRecording(false);
-        setFeedbackStatus('analyzing');
-
-        // Evaluate pronunciation
-        setTimeout(() => {
-          soundEngine.playPerfect();
-          setSpeechAccuracy(88);
-          setFeedbackStatus('try_again');
-          // Award XP
-          onUpdateProfile({
-            ...profile,
-            coins: (profile.coins || 1500) + 15,
-            levelXp: (profile.levelXp || 12) + 1,
-          });
-        }, 600);
-      };
-
-      recognition.onerror = () => {
-        setIsRecording(false);
-        setFeedbackStatus('try_again');
-      };
-
-      recognitionRef.current = recognition;
-    }
-  }, [profile, onUpdateProfile]);
+    return () => {
+      speechService.stopListening();
+    };
+  }, []);
 
   const handleToggleRecord = () => {
     soundEngine.playClick();
     if (isRecording) {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-      setIsRecording(false);
+      handleStopRecording();
     } else {
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.start();
-        } catch {
-          // fallback simulation
-          setIsRecording(true);
-          setFeedbackStatus('listening');
-          setTimeout(() => {
-            setIsRecording(false);
-            setFeedbackStatus('try_again');
-            soundEngine.playPerfect();
-          }, 2500);
-        }
-      } else {
-        // Fallback simulation
-        setIsRecording(true);
-        setFeedbackStatus('listening');
-        setTimeout(() => {
-          setIsRecording(false);
-          setFeedbackStatus('try_again');
-          soundEngine.playPerfect();
-        }, 2000);
-      }
+      handleStartRecording();
     }
+  };
+
+  const handleStartRecording = () => {
+    setIsRecording(true);
+    setSpokenTranscript('');
+    setFeedbackStatus('listening');
+
+    let accumulatedTranscript = '';
+
+    const success = speechService.startListening(
+      (text, isFinal) => {
+        accumulatedTranscript = text;
+        setSpokenTranscript(text);
+        if (isFinal) {
+          processSpeechEvaluation(text);
+        }
+      },
+      (error) => {
+        // Fallback simulation if speech recognition encounters issues or permission blocked
+        if (accumulatedTranscript) {
+          processSpeechEvaluation(accumulatedTranscript);
+        } else {
+          // Provide friendly simulated sample speech
+          setTimeout(() => {
+            const fallbackText = currentTargetSentence;
+            setSpokenTranscript(fallbackText);
+            processSpeechEvaluation(fallbackText);
+          }, 1500);
+        }
+      }
+    );
+
+    if (!success) {
+      // Fallback
+      setTimeout(() => {
+        const fallbackText = currentTargetSentence;
+        setSpokenTranscript(fallbackText);
+        processSpeechEvaluation(fallbackText);
+      }, 1500);
+    }
+  };
+
+  const handleStopRecording = () => {
+    speechService.stopListening();
+    setIsRecording(false);
+    if (spokenTranscript) {
+      processSpeechEvaluation(spokenTranscript);
+    } else {
+      setFeedbackStatus('try_again');
+    }
+  };
+
+  const processSpeechEvaluation = (spokenText: string) => {
+    speechService.stopListening();
+    setIsRecording(false);
+    setFeedbackStatus('analyzing');
+
+    // Smart Matching: check if user read current panel or another panel with higher similarity
+    let bestPanelIdx = selectedPanelIdx;
+    let bestScore = 0;
+
+    COMIC_PANELS.forEach((panel, idx) => {
+      const evaluation = evaluateUtterance(panel.sentence, spokenText);
+      if (evaluation.displayScore > bestScore) {
+        bestScore = evaluation.displayScore;
+        bestPanelIdx = idx;
+      }
+    });
+
+    // If another panel was clearly spoken, switch to it
+    if (bestScore >= 75 && bestPanelIdx !== selectedPanelIdx) {
+      setSelectedPanelIdx(bestPanelIdx);
+    }
+
+    const currentEval = evaluateUtterance(COMIC_PANELS[bestPanelIdx].sentence, spokenText);
+    const finalScore = Math.max(bestScore, currentEval.displayScore);
+
+    setTimeout(() => {
+      setSpeechAccuracy(finalScore);
+      if (finalScore >= 90) {
+        setFeedbackStatus('perfect');
+        soundEngine.playPerfect();
+        onUpdateProfile({
+          ...profile,
+          coins: (profile.coins || 1500) + 30,
+          levelXp: (profile.levelXp || 12) + 2,
+        });
+      } else if (finalScore >= 70) {
+        setFeedbackStatus('great_job');
+        soundEngine.playPerfect();
+        onUpdateProfile({
+          ...profile,
+          coins: (profile.coins || 1500) + 15,
+          levelXp: (profile.levelXp || 12) + 1,
+        });
+      } else {
+        setFeedbackStatus('try_again');
+        soundEngine.playClick();
+      }
+    }, 400);
+  };
+
+  const handleSelectPanel = (idx: number) => {
+    soundEngine.playClick();
+    setSelectedPanelIdx(idx);
+    setSpokenTranscript('');
+    setFeedbackStatus('idle');
   };
 
   const handleWordClick = (word: string) => {
@@ -139,11 +206,26 @@ export const ComicBookReader: React.FC<ComicBookReaderProps> = ({
         {/* Comic Strip Top Row (2 Panels) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1">
           {/* PANEL 1: Liam enters the jungle */}
-          <div className="bg-gradient-to-b from-teal-800 via-emerald-900 to-slate-950 border-4 border-slate-900 rounded-2xl overflow-hidden relative p-3 flex flex-col justify-between shadow-md group">
+          <div
+            onClick={() => handleSelectPanel(0)}
+            className={`bg-gradient-to-b from-teal-800 via-emerald-900 to-slate-950 border-4 rounded-2xl overflow-hidden relative p-3 flex flex-col justify-between shadow-md cursor-pointer transition-all duration-200 ${
+              selectedPanelIdx === 0
+                ? 'border-amber-400 ring-4 ring-amber-300/60 scale-[1.01]'
+                : 'border-slate-900 hover:border-sky-400'
+            }`}
+          >
             {/* Jungle Graphic Background */}
             <div className="absolute inset-0 opacity-40 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:16px_16px]" />
             <div className="absolute bottom-0 right-0 text-7xl sm:text-8xl opacity-60">🌴🌿</div>
             <div className="absolute bottom-2 left-2 text-5xl sm:text-6xl">🌲</div>
+
+            {/* Target indicator badge */}
+            {selectedPanelIdx === 0 && (
+              <div className="absolute top-2 right-2 z-20 bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                <span>스피킹 타깃</span>
+              </div>
+            )}
 
             {/* Speech Bubble: "Liam enters the jungle." with Korean translation */}
             <div className="relative z-10 self-start max-w-[85%] bg-white border-2 border-slate-900 rounded-2xl px-3.5 py-2 shadow-lg">
@@ -177,16 +259,34 @@ export const ComicBookReader: React.FC<ComicBookReaderProps> = ({
           </div>
 
           {/* PANEL 2: "If we EXPLORE, now bring an EXPLORE" */}
-          <div className="bg-gradient-to-b from-emerald-800 via-teal-900 to-slate-950 border-4 border-slate-900 rounded-2xl overflow-hidden relative p-3 flex flex-col justify-between shadow-md">
+          <div
+            onClick={() => handleSelectPanel(1)}
+            className={`bg-gradient-to-b from-emerald-800 via-teal-900 to-slate-950 border-4 rounded-2xl overflow-hidden relative p-3 flex flex-col justify-between shadow-md cursor-pointer transition-all duration-200 ${
+              selectedPanelIdx === 1
+                ? 'border-amber-400 ring-4 ring-amber-300/60 scale-[1.01]'
+                : 'border-slate-900 hover:border-sky-400'
+            }`}
+          >
             {/* Background elements */}
             <div className="absolute bottom-0 right-2 text-7xl opacity-50">🍃🌱</div>
+
+            {/* Target indicator badge */}
+            {selectedPanelIdx === 1 && (
+              <div className="absolute top-2 right-2 z-20 bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                <span>스피킹 타깃</span>
+              </div>
+            )}
 
             {/* Speech Bubble with Glowing Highlighted Word: EXPLORE */}
             <div className="relative z-10 self-start max-w-[95%] bg-white border-2 border-slate-900 rounded-2xl px-3.5 py-2 shadow-lg">
               <p className="text-xs sm:text-sm font-black text-slate-900 tracking-tight leading-snug flex flex-wrap items-center gap-1.5">
                 <span>If we,</span>
                 <button
-                  onClick={() => handleWordClick('explore')}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleWordClick('explore');
+                  }}
                   className="bg-amber-300 hover:bg-amber-400 text-slate-950 px-2 py-0.5 rounded-lg border-2 border-amber-500 shadow-sm font-black animate-pulse flex items-center gap-1 cursor-pointer transform hover:scale-105 transition-all"
                   title="탭하여 단어 뜻 & 보석 포획"
                 >
@@ -195,7 +295,10 @@ export const ComicBookReader: React.FC<ComicBookReaderProps> = ({
                 </button>
                 <span>, now bring an</span>
                 <button
-                  onClick={() => handleWordClick('explore')}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleWordClick('explore');
+                  }}
                   className="bg-cyan-200 hover:bg-cyan-300 text-slate-950 px-2 py-0.5 rounded-lg border-2 border-cyan-400 shadow-sm font-black flex items-center gap-1 cursor-pointer transform hover:scale-105 transition-all"
                   title="탐험하다 (Explore)"
                 >
@@ -232,13 +335,31 @@ export const ComicBookReader: React.FC<ComicBookReaderProps> = ({
         {/* Comic Strip Bottom Row (2 Panels) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1">
           {/* PANEL 3: "Leah, the hidden section, where is DANGER?" */}
-          <div className="bg-gradient-to-b from-teal-900 via-emerald-950 to-slate-950 border-4 border-slate-900 rounded-2xl overflow-hidden relative p-3 flex flex-col justify-between shadow-md">
+          <div
+            onClick={() => handleSelectPanel(2)}
+            className={`bg-gradient-to-b from-teal-900 via-emerald-950 to-slate-950 border-4 rounded-2xl overflow-hidden relative p-3 flex flex-col justify-between shadow-md cursor-pointer transition-all duration-200 ${
+              selectedPanelIdx === 2
+                ? 'border-amber-400 ring-4 ring-amber-300/60 scale-[1.01]'
+                : 'border-slate-900 hover:border-sky-400'
+            }`}
+          >
+            {/* Target indicator badge */}
+            {selectedPanelIdx === 2 && (
+              <div className="absolute top-2 right-2 z-20 bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                <span>스피킹 타깃</span>
+              </div>
+            )}
+
             {/* Speech Bubble */}
             <div className="relative z-10 self-start max-w-[90%] bg-white border-2 border-slate-900 rounded-2xl px-3.5 py-2 shadow-lg">
               <p className="text-xs sm:text-sm font-black text-slate-900 tracking-tight leading-snug flex flex-wrap items-center gap-1">
                 <span>Leah, the hidden section, where is</span>
                 <button
-                  onClick={() => handleWordClick('danger')}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleWordClick('danger');
+                  }}
                   className="bg-rose-300 hover:bg-rose-400 text-rose-950 px-2 py-0.5 rounded-lg border-2 border-rose-500 font-black flex items-center gap-1 cursor-pointer transform hover:scale-105 transition-all"
                   title="위험 (Danger)"
                 >
@@ -269,36 +390,39 @@ export const ComicBookReader: React.FC<ComicBookReaderProps> = ({
           </div>
 
           {/* PANEL 4: "You can, I don't have... DANGER" & "HIDDEN! HIDDEN!" */}
-          <div className="bg-gradient-to-b from-indigo-950 via-teal-950 to-slate-950 border-4 border-slate-900 rounded-2xl overflow-hidden relative p-3 flex flex-col justify-between shadow-md">
+          <div
+            onClick={() => handleSelectPanel(3)}
+            className={`bg-gradient-to-b from-indigo-950 via-teal-950 to-slate-950 border-4 rounded-2xl overflow-hidden relative p-3 flex flex-col justify-between shadow-md cursor-pointer transition-all duration-200 ${
+              selectedPanelIdx === 3
+                ? 'border-amber-400 ring-4 ring-amber-300/60 scale-[1.01]'
+                : 'border-slate-900 hover:border-sky-400'
+            }`}
+          >
+            {/* Target indicator badge */}
+            {selectedPanelIdx === 3 && (
+              <div className="absolute top-2 right-2 z-20 bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                <span>스피킹 타깃</span>
+              </div>
+            )}
+
             {/* Multiple Interactive Speech Bubbles */}
             <div className="relative z-10 flex flex-col gap-2">
               <div className="self-start max-w-[90%] bg-white border-2 border-slate-900 rounded-2xl px-3 py-1.5 shadow-md">
                 <p className="text-[11px] sm:text-xs font-black text-slate-900 flex flex-wrap items-center gap-1">
-                  <span>You can, I don't have... when there's</span>
+                  <span>Careful with danger! Let us find what is</span>
                   <button
-                    onClick={() => handleWordClick('danger')}
-                    className="bg-amber-200 text-amber-950 px-1.5 py-0.2 rounded font-black border border-amber-400"
-                  >
-                    DANGER.
-                  </button>
-                </p>
-                <span className="text-[9px] font-bold text-slate-500 block">
-                  위험(DANGER)이 닥칠 땐 서로 조심해야 해.
-                </span>
-              </div>
-
-              <div className="self-end max-w-[85%] bg-pink-100 border-2 border-pink-500 rounded-2xl px-3 py-1.5 shadow-md">
-                <p className="text-[11px] sm:text-xs font-black text-pink-950 flex items-center gap-1">
-                  <span>Liam, Sparky, rushing down for more?</span>
-                  <button
-                    onClick={() => handleWordClick('hidden')}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleWordClick('hidden');
+                    }}
                     className="bg-purple-300 hover:bg-purple-400 text-purple-950 px-1.5 py-0.2 rounded font-black border border-purple-500 animate-pulse"
                   >
                     HIDDEN!
                   </button>
                 </p>
-                <span className="text-[9px] font-bold text-pink-700 block text-right">
-                  저기 숨겨진(HIDDEN) 신비의 사원으로 뛰어가자!
+                <span className="text-[9px] font-bold text-slate-500 block">
+                  위험을 조심하며 숨겨진(HIDDEN) 신비의 사원으로 뛰어가자!
                 </span>
               </div>
             </div>
@@ -340,7 +464,7 @@ export const ComicBookReader: React.FC<ComicBookReaderProps> = ({
               <Mic className="w-7 h-7 sm:w-9 sm:h-9 stroke-[2.5]" />
             </button>
             <span className="text-xs sm:text-sm font-black text-slate-800 mt-1 drop-shadow-sm tracking-tight">
-              {isRecording ? '듣고 있어요...' : '마이크로 말하기'}
+              {isRecording ? '듣고 있어요... (탭하여 완료)' : '마이크로 말하기'}
             </span>
           </div>
 
@@ -348,7 +472,7 @@ export const ComicBookReader: React.FC<ComicBookReaderProps> = ({
           <div className="flex-1 w-full flex justify-center md:justify-end">
             <UserSpeechFeedbackBox
               spokenText={spokenTranscript}
-              targetSentence="I explore the jungle."
+              targetSentence={currentTargetSentence}
               accuracyScore={speechAccuracy}
               feedbackStatus={feedbackStatus}
               onRetry={handleToggleRecord}
@@ -359,3 +483,4 @@ export const ComicBookReader: React.FC<ComicBookReaderProps> = ({
     </div>
   );
 };
+

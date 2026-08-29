@@ -9,6 +9,14 @@ export interface ScoreBreakdown {
   weakPhonemes: string[];
   rarity: CardRarity;
   damage: number;
+  words?: WordEvaluation[];
+}
+
+export interface WordEvaluation {
+  word: string;
+  cleanWord: string;
+  status: 'correct' | 'practice' | 'missed';
+  score: number;
 }
 
 export function calculateSentenceScore(
@@ -17,7 +25,7 @@ export function calculateSentenceScore(
   completeness: number
 ): number {
   const weighted = accuracy * 0.6 + fluency * 0.25 + completeness * 0.15;
-  // Child correction factor: +5% (1.05x)
+  // Child friendly correction factor: +5% (1.05x)
   return Math.round(Math.min(100, weighted * 1.05));
 }
 
@@ -70,15 +78,15 @@ export function calculateTextSimilarity(target: string, spoken: string): number 
   if (t === s) return 1;
 
   // Simple token matching
-  const tTokens = t.split(/\s+/);
-  const sTokens = s.split(/\s+/);
+  const tTokens = t.split(/\s+/).filter(Boolean);
+  const sTokens = s.split(/\s+/).filter(Boolean);
 
   let matchCount = 0;
   tTokens.forEach((tk) => {
     if (sTokens.includes(tk)) matchCount++;
   });
 
-  const tokenSim = matchCount / Math.max(tTokens.length, sTokens.length);
+  const tokenSim = tTokens.length > 0 ? matchCount / Math.max(tTokens.length, sTokens.length) : 0;
 
   // Character Levenshtein for fine-grained match
   const matrix: number[][] = [];
@@ -109,6 +117,62 @@ export function calculateTextSimilarity(target: string, spoken: string): number 
   return Math.max(tokenSim, levSim);
 }
 
+// Evaluate individual words in a target sentence vs spoken text
+export function evaluateWords(targetSentence: string, spokenText: string): WordEvaluation[] {
+  if (!targetSentence) return [];
+
+  const rawWords = targetSentence.trim().split(/\s+/);
+  const cleanSpoken = spokenText.toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, ' ');
+  const spokenTokens = cleanSpoken.split(/\s+/).filter(Boolean);
+
+  return rawWords.map((rawWord) => {
+    const cleanWord = rawWord.toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, '');
+    if (!cleanWord) {
+      return { word: rawWord, cleanWord: '', status: 'correct', score: 100 };
+    }
+
+    // Check exact match
+    if (spokenTokens.includes(cleanWord)) {
+      return {
+        word: rawWord,
+        cleanWord,
+        status: 'correct',
+        score: Math.min(100, 92 + Math.floor(Math.random() * 8)),
+      };
+    }
+
+    // Check closest match among spoken tokens
+    let bestSim = 0;
+    spokenTokens.forEach((st) => {
+      const sim = calculateTextSimilarity(cleanWord, st);
+      if (sim > bestSim) bestSim = sim;
+    });
+
+    if (bestSim >= 0.75) {
+      return {
+        word: rawWord,
+        cleanWord,
+        status: 'correct',
+        score: Math.round(bestSim * 100),
+      };
+    } else if (bestSim >= 0.4 || spokenTokens.length === 0) {
+      return {
+        word: rawWord,
+        cleanWord,
+        status: 'practice',
+        score: Math.max(50, Math.round(bestSim * 100)),
+      };
+    } else {
+      return {
+        word: rawWord,
+        cleanWord,
+        status: 'missed',
+        score: Math.max(30, Math.round(bestSim * 100)),
+      };
+    }
+  });
+}
+
 // Generate realistic phonetic breakdown based on spoken text vs target
 export function evaluateUtterance(
   targetText: string,
@@ -116,15 +180,22 @@ export function evaluateUtterance(
   targetPhonemes?: WordPhoneme[]
 ): ScoreBreakdown {
   const similarity = calculateTextSimilarity(targetText, spokenText);
+  const words = evaluateWords(targetText, spokenText);
+
+  // Calculate average word score
+  const wordScores = words.map((w) => w.score);
+  const avgWordScore = wordScores.length > 0 
+    ? Math.round(wordScores.reduce((a, b) => a + b, 0) / wordScores.length)
+    : Math.round(similarity * 100);
 
   // Generate realistic accuracy and fluency
-  let rawAccuracy = Math.round(similarity * 100);
+  let rawAccuracy = Math.max(avgWordScore, Math.round(similarity * 100));
   // Add small natural variance
   if (rawAccuracy > 70) {
-    rawAccuracy = Math.min(100, rawAccuracy + Math.floor(Math.random() * 6) - 2);
+    rawAccuracy = Math.min(100, rawAccuracy + Math.floor(Math.random() * 4));
   }
-  const rawFluency = Math.min(100, Math.round(rawAccuracy * 0.95 + Math.random() * 10));
-  const rawCompleteness = similarity >= 0.8 ? 100 : Math.round(similarity * 100);
+  const rawFluency = Math.min(100, Math.round(rawAccuracy * 0.95 + Math.random() * 8));
+  const rawCompleteness = similarity >= 0.7 ? 100 : Math.round(similarity * 100);
 
   const displayScore = calculateSentenceScore(rawAccuracy, rawFluency, rawCompleteness);
   const verdict = getVerdictFromScore(displayScore);
@@ -148,5 +219,7 @@ export function evaluateUtterance(
     weakPhonemes,
     rarity,
     damage: 0,
+    words,
   };
 }
+

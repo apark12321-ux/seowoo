@@ -122,6 +122,23 @@ export interface UserChildProfile {
   xp: number;
   mana: number;
   gems: number;
+  coins: number;
+  level: number;
+  levelXp: number;
+  levelNextXp: number;
+  inventory: {
+    id: string;
+    name: string;
+    type: 'pet' | 'clothing' | 'accessory';
+    icon: string;
+    isEquipped: boolean;
+    isLocked: boolean;
+  }[];
+  wordGems: {
+    ruby: number;
+    sapphire: number;
+    amethyst: number;
+  };
   streakDays: number;
   streakActiveToday: boolean;
   freezeCount: number;

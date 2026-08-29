@@ -10,6 +10,7 @@ import {
 import { storageService } from './utils/storage';
 import { ALL_BOOKS } from './data/mockBooks';
 import { ALL_SPELL_CARDS } from './data/spellCards';
+import { ComicQuestMain } from './components/ComicQuest/ComicQuestMain';
 import { Navbar } from './components/Navigation/Navbar';
 import { MagicTowerHome } from './components/Home/MagicTowerHome';
 import { BookLibrary } from './components/Library/BookLibrary';
@@ -28,7 +29,7 @@ export default function App() {
   const [books] = useState<Book[]>(ALL_BOOKS);
 
   // App Navigation State
-  const [activeTab, setActiveTab] = useState<string>('home');
+  const [activeTab, setActiveTab] = useState<string>('quest');
   const [readingBookId, setReadingBookId] = useState<string>(ALL_BOOKS[0].id);
   const [readingChapterId, setReadingChapterId] = useState<string>(ALL_BOOKS[0].chapters[0].id);
 
@@ -128,9 +129,9 @@ export default function App() {
   const currentChapter = currentBook.chapters.find((c) => c.id === readingChapterId) || currentBook.chapters[0];
 
   return (
-    <div className={`min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-amber-400 selection:text-slate-950 ${profile.settings.dyslexiaFont ? 'font-dyslexic' : ''}`}>
-      {/* Top Global Navigation Bar (Hidden during full-screen battle and reader for immersion) */}
-      {activeTab !== 'reader' && activeTab !== 'battle' && activeTab !== 'battle-result' && (
+    <div className={`min-h-screen bg-[#0b3353] text-slate-100 flex flex-col font-sans selection:bg-amber-400 selection:text-slate-950 ${profile.settings.dyslexiaFont ? 'font-dyslexic' : ''}`}>
+      {/* Top Global Navigation Bar (Only for classic library/parent mode when requested) */}
+      {activeTab !== 'quest' && activeTab !== 'reader' && activeTab !== 'battle' && activeTab !== 'battle-result' && (
         <Navbar
           activeTab={activeTab}
           currentTab={activeTab}
@@ -149,7 +150,7 @@ export default function App() {
             if (mode === 'parent' || mode === 'admin') {
               setActiveTab('parent');
             } else if (mode === 'student') {
-              if (activeTab === 'parent') setActiveTab('home');
+              if (activeTab === 'parent') setActiveTab('quest');
             }
           }}
           onOpenPaywall={() => setShowPaywall(true)}
@@ -157,20 +158,13 @@ export default function App() {
       )}
 
       {/* Main View Router */}
-      <div className="flex-1">
-        {activeTab === 'home' && (
-          <MagicTowerHome
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {(activeTab === 'quest' || activeTab === 'home') && (
+          <ComicQuestMain
             profile={profile}
-            quests={quests}
             books={books}
-            onStartReading={handleStartReading}
-            onNavigateTab={(tab) => {
-              soundEngine.playClick();
-              setActiveTab(tab);
-            }}
-            onClaimQuest={(questId) => {
-              // Quest claim logic
-            }}
+            onUpdateProfile={handleUpdateProfile}
+            onOpenParentDashboard={() => setActiveTab('parent')}
             onOpenPaywall={() => setShowPaywall(true)}
           />
         )}

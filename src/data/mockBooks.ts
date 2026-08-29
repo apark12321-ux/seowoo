@@ -1,4 +1,5 @@
 import { Book } from '../types';
+import { GENERATED_100_BOOKS } from './bookCatalog';
 
 export const MOCK_BOOKS: Book[] = [
 
@@ -595,5 +596,7 @@ export const MOCK_BOOKS: Book[] = [
   },
 ];
 
-export const ALL_BOOKS = MOCK_BOOKS;
+// Combine the hand-crafted multi-chapter base books with the generated catalog to ensure exactly 100 books
+const remainingGenerated = GENERATED_100_BOOKS.slice(3, 100);
+export const ALL_BOOKS: Book[] = [...MOCK_BOOKS, ...remainingGenerated];
 
